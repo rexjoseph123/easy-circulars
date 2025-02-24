@@ -49,7 +49,7 @@ docker compose -f install/docker/docker-compose-dev.yaml up
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-cd comps/
+cd backend/
 pip install -r requirements.txt # only once
 cd dataprep/
 pip install -r requirements.txt # only once
@@ -79,7 +79,7 @@ curl -X POST "http://localhost:6007/v1/dataprep" -H "Content-Type: multipart/for
 #### Activate environment:
 ```bash
 source venv/bin/activate
-cd comps/retriever
+cd backend/retriever
 pip install -r requirements.txt # only once
 
 export PYTHONPATH=<path/to/ai-agents/dir>
@@ -134,7 +134,7 @@ export MONGO_DB=rag_db
 
 # Activate the environment
 source venv/bin/activate
-cd comps/
+cd backend/
 ```
 
 ### Run the service:
@@ -180,13 +180,32 @@ export SERVER_HOST_URL=localhost:9001
 export NEXT_PUBLIC_SERVER_URL=localhost:9001
 
 # Install dependencies
-cd design-patterns/rag/ui
+cd frontend
 npm install
 ```
 
-#### Start the UI:
+### Start the UI:
 ```bash
 npm run dev
 ```
 
 The frontend will be running on http://localhost:3000
+
+---
+
+### Debugging:
+#### Groq service:
+```bash
+curl -N -X POST http://localhost:5099/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" \
+  -d '{
+    "messages": [
+      {
+        "role": "user",
+        "content": "What are the benefits of microservices?"
+      }
+    ],
+    "stream": true
+  }'
+```
