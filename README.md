@@ -49,12 +49,12 @@ docker compose -f install/docker/docker-compose-dev.yaml up
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-cd backend/
+cd comps/
 pip install -r requirements.txt # only once
 cd dataprep/
 pip install -r requirements.txt # only once
 
-export PYTHONPATH=<path/to/ai-agents/dir>
+export PYTHONPATH=<path/to/easy-circulars/dir>
 export HUGGINGFACEHUB_API_TOKEN=<token>
 export REDIS_URL=redis://redis-vector-db:6379
 export SERVER_HOST_IP=<your_server_host_ip>
@@ -79,7 +79,7 @@ curl -X POST "http://localhost:6007/v1/dataprep" -H "Content-Type: multipart/for
 #### Activate environment:
 ```bash
 source venv/bin/activate
-cd backend/retriever
+cd comps/retriever
 pip install -r requirements.txt # only once
 
 export PYTHONPATH=<path/to/ai-agents/dir>
@@ -107,7 +107,7 @@ curl http://localhost:7000/v1/retrieval \
 
 ## Backend service (new terminal)
 ```bash
-export PYTHONPATH=<path/to/ai-agents/dir>
+export PYTHONPATH=<path/to/easy-circulars/dir>
 export no_proxy=127.0.0.1,localhost,.intel.com,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
 export EMBEDDING_MODEL_ID="BAAI/bge-base-en-v1.5"
 export RERANK_MODEL_ID="BAAI/bge-reranker-base"
@@ -134,7 +134,7 @@ export MONGO_DB=rag_db
 
 # Activate the environment
 source venv/bin/activate
-cd backend/
+cd comps/
 ```
 
 ### Run the service:
@@ -158,17 +158,17 @@ curl -X POST "http://localhost:9001/conversation/{conversation_id}" \
 
 #### Get conversation history:
 ```bash
-curl -X GET "http://localhost:9001/conversation/{conversation_id}?db_name='easy_circulars'" | jq
+curl -X GET "http://localhost:9001/conversation/{conversation_id}?db_name=easy_circulars" | jq
 ```
 
 #### Delete conversation:
 ```bash
-curl -X DELETE "http://localhost:9003/conversation/{conversation_id}?db_name='easy_circulars'" | jq
+curl -X DELETE "http://localhost:9001/conversation/{conversation_id}?db_name=easy_circulars" | jq
 ```
 
 #### List all conversations:
 ```bash
-curl -X GET "http://localhost:9003/conversations?limit=3&db_name='easy_circulars'" | jq     
+curl -X GET "http://localhost:9001/conversations?limit=3&db_name=easy_circulars" | jq     
 ```
 
 ---
@@ -180,7 +180,7 @@ export SERVER_HOST_URL=localhost:9001
 export NEXT_PUBLIC_SERVER_URL=localhost:9001
 
 # Install dependencies
-cd frontend
+cd ui
 npm install
 ```
 
