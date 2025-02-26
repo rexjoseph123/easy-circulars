@@ -46,7 +46,7 @@ docker compose -f install/docker/docker-compose-dev.yaml up
 
 #### Enter the MongoDB container
 ```bash
- docker exec -it easy-circulars-mongodb mongosh
+ docker exec -it mongodb mongosh
 ```
 
 #### Switch to the `easy_circulars` database
