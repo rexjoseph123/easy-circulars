@@ -31,11 +31,9 @@ export RERANK_SERVER_PORT=8808
 export LLM_SERVER_HOST_IP=localhost
 export LLM_SERVER_PORT=5099
 export GROQ_API_KEY=<GROQ_API_KEY>
-export MONGO_USERNAME=agents
-export MONGO_PASSWORD=agents
 export MONGO_HOST=localhost
 export MONGO_PORT=27017
-export MONGO_DB=rag_db
+export MONGO_DB=easy_circulars
 ```
 Run the compose file:
 ```bash
@@ -126,11 +124,9 @@ export RERANK_SERVER_PORT=8808
 export LLM_SERVER_HOST_IP=localhost
 export LLM_SERVER_PORT=5099
 export GROQ_API_KEY=<GROQ_API_KEY>
-export MONGO_USERNAME=agents
-export MONGO_PASSWORD=agents
 export MONGO_HOST=localhost
 export MONGO_PORT=27017
-export MONGO_DB=rag_db
+export MONGO_DB=easy_circulars
 
 # Activate the environment
 source venv/bin/activate
