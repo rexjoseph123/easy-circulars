@@ -42,6 +42,37 @@ docker compose -f install/docker/docker-compose-dev.yaml up
 
 ---
 
+### Ingesting Mock Data into MongoDB
+
+#### Enter the MongoDB container
+```bash
+ docker exec -it easy-circulars-mongodb mongosh
+```
+
+#### Switch to the `easy_circulars` database
+```javascript
+use easy_circulars
+```
+
+#### Insert mock circulars
+```javascript
+const mockCirculars = [ { _id: '1', title: "Master Circular – Deendayal Antyodaya Yojana - National Rural Livelihoods Mission (DAY-NRLM)", tags: ["master", "rural"], date: "2019-07-01", bookmark: false, url: "/pdfs/4MC01072019506189EF9A684645AF078EAA43E6BFC5.pdf", conversation_id: "", references: ['2', '3']}, { _id: '2', title: "Master Circular – Deendayal Antyodaya Yojana - National Rural Livelihoods Mission (DAY-NRLM)", tags: ["master", "rural"], date: "2018-07-03", bookmark: false, url: "/pdfs/09MC626B2B1F53BE4DD8B0A000EBAC40E2DB.pdf", conversation_id: "", references: []}, { _id: '3', title: "Priority Sector Lending- Restructuring of SGSY as National Rural Livelihood Mission (NRLM) - Aajeevika", tags: ["lending", "rural"], date: "2013-06-27", bookmark: false, url: "/pdfs/NRLM27062013.pdf", conversation_id: "", references: []}];
+
+db.circulars.insertMany(mockCirculars);
+```
+
+#### Check if data has been inserted
+```javascript
+db.circulars.find().pretty();
+```
+
+#### Exit Mongo Shell
+```javascript
+exit
+```
+
+---
+
 ### Dataprep Service (New terminal - only required when uploading files/debugging)
 #### Activate environment:
 ```bash
