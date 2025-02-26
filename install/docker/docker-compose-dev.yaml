@@ -13,9 +13,6 @@ services:
   mongodb:
     image: mongo
     restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: agents
-      MONGO_INITDB_ROOT_PASSWORD: agents
     ports:
       - "27017:27017"
   groq-service:
