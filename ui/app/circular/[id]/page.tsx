@@ -167,12 +167,6 @@ export default function CircularPage() {
 
   const handleSend = async () => {
     if (input.trim() && conversation) {
-      const newMessage: Message = {
-        question: input,
-        answer: "",
-        sources: [],
-        timestamp: new Date().toISOString(),
-      };
   
       setInput("");
   
