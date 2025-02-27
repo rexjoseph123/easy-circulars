@@ -18,22 +18,27 @@ export EMBEDDING_MODEL_ID="BAAI/bge-base-en-v1.5"
 export RERANK_MODEL_ID="BAAI/bge-reranker-base"
 export LLM_MODEL_ID="meta-llama/Meta-Llama-3.1-8B-Instruct"
 export INDEX_NAME="rag-redis"
-export REDIS_URL="redis://redis-vector-db:6379"
+export REDIS_URL="redis://easy-circulars-redis:6379"
 export SERVER_HOST_URL=localhost:9001
 export HUGGINGFACEHUB_API_TOKEN=<token>
 export MEGA_SERVICE_PORT=9001
 export EMBEDDING_SERVER_HOST_IP=localhost
-export EMBEDDING_SERVER_PORT=6006
+export EMBEDDING_SERVER_PORT=6010
 export RETRIEVER_SERVICE_HOST_IP=localhost
-export RETRIEVER_SERVICE_PORT=5007
+export RETRIEVER_SERVICE_PORT=5011
 export RERANK_SERVER_HOST_IP=localhost
-export RERANK_SERVER_PORT=8808
+export RERANK_SERVER_PORT=8810
 export LLM_SERVER_HOST_IP=localhost
-export LLM_SERVER_PORT=5099
+export LLM_SERVER_PORT=5101
 export GROQ_API_KEY=<GROQ_API_KEY>
 export MONGO_HOST=localhost
-export MONGO_PORT=27017
+export MONGO_PORT=27018
 export MONGO_DB=easy_circulars
+```
+Build the Groq and Retriever images:
+```bash
+docker buildx build --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy -t easy-circulars/groq:latest -f comps/groq/Dockerfile  .;
+docker buildx build --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy -t easy-circulars/retriever:latest -f comps/retriever/Dockerfile . 
 ```
 Run the compose file:
 ```bash
@@ -46,7 +51,7 @@ docker compose -f install/docker/docker-compose-dev.yaml up
 
 #### Enter the MongoDB container
 ```bash
- docker exec -it mongodb mongosh
+docker exec -it easy-circulars-mongodb mongosh
 ```
 
 #### Switch to the `easy_circulars` database
@@ -85,9 +90,9 @@ pip install -r requirements.txt # only once
 
 export PYTHONPATH=<path/to/easy-circulars/dir>
 export HUGGINGFACEHUB_API_TOKEN=<token>
-export REDIS_URL=redis://redis-vector-db:6379
-export SERVER_HOST_IP=<your_server_host_ip>
-export SERVER_PORT=<your_server_port>
+export REDIS_URL="redis://localhost:6381"
+export LLM_SERVER_HOST_IP=localhost
+export LLM_SERVER_PORT=5101
 export no_proxy=127.0.0.1,localhost,.intel.com,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
 ```
 
@@ -111,9 +116,9 @@ source venv/bin/activate
 cd comps/retriever
 pip install -r requirements.txt # only once
 
-export PYTHONPATH=<path/to/ai-agents/dir>
+export PYTHONPATH=<path/to/easy-circulars/dir>
 export HUGGINGFACEHUB_API_TOKEN=<token>
-export REDIS_URL=redis://redis-vector-db:6379
+export REDIS_URL="redis://localhost:6381"
 export INDEX_NAME="rag-redis"
 export no_proxy=127.0.0.1,localhost,.intel.com,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
 ```
@@ -142,21 +147,21 @@ export EMBEDDING_MODEL_ID="BAAI/bge-base-en-v1.5"
 export RERANK_MODEL_ID="BAAI/bge-reranker-base"
 export LLM_MODEL_ID="meta-llama/Meta-Llama-3.1-8B-Instruct"
 export INDEX_NAME="rag-redis"
-export REDIS_URL="redis://redis-vector-db:6379"
+export REDIS_URL="redis://localhost:6381"
 export SERVER_HOST_URL=localhost:9001
 export HUGGINGFACEHUB_API_TOKEN=<token>
 export MEGA_SERVICE_PORT=9001
 export EMBEDDING_SERVER_HOST_IP=localhost
-export EMBEDDING_SERVER_PORT=6006
+export EMBEDDING_SERVER_PORT=6010
 export RETRIEVER_SERVICE_HOST_IP=localhost
-export RETRIEVER_SERVICE_PORT=5007
+export RETRIEVER_SERVICE_PORT=5011
 export RERANK_SERVER_HOST_IP=localhost
-export RERANK_SERVER_PORT=8808
+export RERANK_SERVER_PORT=8810
 export LLM_SERVER_HOST_IP=localhost
-export LLM_SERVER_PORT=5099
+export LLM_SERVER_PORT=5101
 export GROQ_API_KEY=<GROQ_API_KEY>
 export MONGO_HOST=localhost
-export MONGO_PORT=27017
+export MONGO_PORT=27018
 export MONGO_DB=easy_circulars
 
 # Activate the environment
@@ -223,7 +228,7 @@ The frontend will be running on http://localhost:3000
 ### Debugging:
 #### Groq service:
 ```bash
-curl -N -X POST http://localhost:5099/v1/chat/completions \
+curl -N -X POST http://localhost:5101/v1/chat/completions \
   -H "Content-Type: application/json" \
   -H "Accept: text/event-stream" \
   -d '{

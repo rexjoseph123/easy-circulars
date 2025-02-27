@@ -4,22 +4,25 @@
 version: "3.8"
 
 services:
-  redis-vector-db:
+  easy-circulars-redis:
     image: redis/redis-stack:7.2.0-v9
-    container_name: redis-vector-db
+    container_name: easy-circulars-redis
     ports:
-      - "6379:6379"
-      - "8001:8001"
-  mongodb:
+      - "6381:6379"
+      - "8002:8001"  
+      
+  easy-circulars-mongodb:
     image: mongo
+    container_name: easy-circulars-mongodb
     restart: always
     ports:
-      - "27017:27017"
-  groq-service:
-    image: thebeginner86intel/ai-agents-groq:latest
-    container_name: groq-service
+      - "27018:27017"
+
+  easy-circulars-groq:
+    image: easy-circulars/groq:latest
+    container_name: easy-circulars-groq
     ports:
-      - "5099:8000"
+      - "5101:8000"
     volumes:
       - "./cache:/root/.cache"
     environment:
@@ -29,11 +32,12 @@ services:
       GROQ_API_KEY: ${GROQ_API_KEY}
       HTTP_PROXY: ${HTTP_PROXY}
       HTTPS_PROXY: ${HTTPS_PROXY}
-  tei-reranking-service:
+
+  easy-circulars-tei-reranking:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
-    container_name: tei-reranking-server
+    container_name: easy-circulars-tei-reranking
     ports:
-      - "8808:80"
+      - "8810:80"
     volumes:
       - "./data:/data"
     shm_size: 1g
@@ -47,11 +51,12 @@ services:
       HF_HUB_DISABLE_PROGRESS_BARS: 1
       HF_HUB_ENABLE_HF_TRANSFER: 0
     command: --model-id ${RERANK_MODEL_ID} --auto-truncate
-  tei-embedding-service:
+
+  easy-circulars-embedding-service:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
-    container_name: tei-embedding-server
+    container_name: easy-circulars-embedding-service
     ports:
-      - "6006:80"
+      - "6010:80"
     volumes:
       - "./data:/data"
     shm_size: 1g
@@ -62,14 +67,15 @@ services:
       HTTP_PROXY: ${HTTP_PROXY}
       HTTPS_PROXY: ${HTTPS_PROXY}
     command: --model-id ${EMBEDDING_MODEL_ID} --auto-truncate
-  retriever:
-    image: ai-agents/retriever:latest
-    container_name: retriever-redis-server
+
+  easy-circulars-retriever:
+    image: ai-agents/retriever/tanmay:latest
+    container_name: easy-circulars-retriever
     ports:
-      - "5007:7000"
+      - "5011:7000"
     ipc: host
     depends_on:
-      - redis-vector-db
+      - easy-circulars-redis
     environment:
       no_proxy: ${no_proxy}
       http_proxy: ${http_proxy}
@@ -78,7 +84,7 @@ services:
       INDEX_NAME: ${INDEX_NAME}
       HTTP_PROXY: ${HTTP_PROXY}
       HTTPS_PROXY: ${HTTPS_PROXY}
-      TEI_EMBEDDING_ENDPOINT: http://tei-embedding-service:80
+      TEI_EMBEDDING_ENDPOINT: http://easy-circulars-embedding-service:80
       HUGGINGFACEHUB_API_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
     restart: unless-stopped
 
