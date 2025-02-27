@@ -69,7 +69,7 @@ services:
     command: --model-id ${EMBEDDING_MODEL_ID} --auto-truncate
 
   easy-circulars-retriever:
-    image: ai-agents/retriever/tanmay:latest
+    image: easy-circulars/retriever:latest
     container_name: easy-circulars-retriever
     ports:
       - "5011:7000"
