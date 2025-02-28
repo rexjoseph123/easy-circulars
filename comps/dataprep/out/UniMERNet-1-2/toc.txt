@@ -1,0 +1,4 @@
+1;Introduction
+1;Related Work
+2;Traditional Machine Learning Methods in MER
+2;Deep Learning and Transformer Methods in MER

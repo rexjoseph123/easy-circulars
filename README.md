@@ -178,29 +178,29 @@ The backend will be running on http://localhost:9001
 ### Test the backend
 #### Start a new conversation:
 ```bash
-curl -X POST "http://localhost:9001/conversation/new" -d '{"db_name": "easy_circulars"}'  | jq  
+curl -X POST "http://localhost:9001/api/conversations/new" -d '{"db_name": "easy_circulars"}'  | jq  
 ```
 
 #### Continue a conversation:
 ```bash
-curl -X POST "http://localhost:9001/conversation/{conversation_id}" \
+curl -X POST "http://localhost:9001/api/conversations/{conversation_id}" \
      -H "Content-Type: application/json" \
      -d '{"db_name": "easy_circulars", "question": "What is DAY-NRLM?"}' | jq
 ```
 
 #### Get conversation history:
 ```bash
-curl -X GET "http://localhost:9001/conversation/{conversation_id}?db_name=easy_circulars" | jq
+curl -X GET "http://localhost:9001/api/conversations/{conversation_id}?db_name=easy_circulars" | jq
 ```
 
 #### Delete conversation:
 ```bash
-curl -X DELETE "http://localhost:9001/conversation/{conversation_id}?db_name=easy_circulars" | jq
+curl -X DELETE "http://localhost:9001/api/conversations/{conversation_id}?db_name=easy_circulars" | jq
 ```
 
 #### List all conversations:
 ```bash
-curl -X GET "http://localhost:9001/conversations?limit=3&db_name=easy_circulars" | jq     
+curl -X GET "http://localhost:9001/api/conversations?limit=3&db_name=easy_circulars" | jq     
 ```
 
 ---

@@ -1,22 +1,30 @@
-"use client"
+"use client";
 
-import { useState, useMemo, useEffect } from "react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { usePageTitle } from "../contexts/PageTitleContext"
+import { useState, useMemo, useEffect } from "react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { usePageTitle } from "../contexts/PageTitleContext";
 
 // Mock data for circulars
 const mockCirculars = [
-  { id: 1, title: "Digital Payments Circular 2022", content: "Old content about digital payments...", version: "2022" },
+  {
+    id: 1, title: "Digital Payments Circular 2022", content: "Old content about digital payments...", version: "2022",
+  },
   {
     id: 2,
     title: "Digital Payments Circular 2023",
     content: "Updated content about digital payments...",
     version: "2023",
   },
-  { id: 3, title: "KYC Norms 2022", content: "Old KYC norms...", version: "2022" },
-  { id: 4, title: "KYC Norms 2023", content: "Updated KYC norms...", version: "2023" },
+  {
+    id: 3, title: "KYC Norms 2022", content: "Old KYC norms...", version: "2022",
+  },
+  {
+    id: 4, title: "KYC Norms 2023", content: "Updated KYC norms...", version: "2023",
+  },
   {
     id: 5,
     title: "Foreign Exchange Regulations 2021",
@@ -29,7 +37,7 @@ const mockCirculars = [
     content: "Updated foreign exchange regulations...",
     version: "2023",
   },
-]
+];
 
 type CircularGroup = {
   title: string
@@ -37,35 +45,35 @@ type CircularGroup = {
 }
 
 export default function ComparePage() {
-  const { setPageTitle } = usePageTitle()
-  const [selectedGroup, setSelectedGroup] = useState<string>("")
-  const [oldCircular, setOldCircular] = useState<string>("")
-  const [newCircular, setNewCircular] = useState<string>("")
+  const { setPageTitle } = usePageTitle();
+  const [selectedGroup, setSelectedGroup] = useState<string>("");
+  const [oldCircular, setOldCircular] = useState<string>("");
+  const [newCircular, setNewCircular] = useState<string>("");
 
   useEffect(() => {
-    setPageTitle("Compare Circulars")
-  }, [setPageTitle])
+    setPageTitle("Compare Circulars");
+  }, [setPageTitle]);
 
   const circularGroups = useMemo(() => {
-    const groups: { [key: string]: CircularGroup } = {}
+    const groups: { [key: string]: CircularGroup } = {};
     mockCirculars.forEach((circular) => {
-      const title = circular.title.split(" ").slice(0, -1).join(" ")
+      const title = circular.title.split(" ").slice(0, -1).join(" ");
       if (!groups[title]) {
-        groups[title] = { title, versions: [] }
+        groups[title] = { title, versions: [] };
       }
-      groups[title].versions.push(circular)
-    })
-    return Object.values(groups).filter((group) => group.versions.length > 1)
-  }, [])
+      groups[title].versions.push(circular);
+    });
+    return Object.values(groups).filter((group) => group.versions.length > 1);
+  }, []);
 
-  const selectedVersions = useMemo(() => {
-    return circularGroups.find((group) => group.title === selectedGroup)?.versions || []
-  }, [selectedGroup, circularGroups])
+  const selectedVersions = useMemo(
+    () => circularGroups.find((group) => group.title === selectedGroup)?.versions || [],
+    [selectedGroup, circularGroups],
+  );
 
   const handleCompare = () => {
     // Here you would typically implement the comparison logic
-    console.log("Comparing", oldCircular, "with", newCircular)
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -76,9 +84,9 @@ export default function ComparePage() {
         <Select
           value={selectedGroup}
           onValueChange={(value) => {
-            setSelectedGroup(value)
-            setOldCircular("")
-            setNewCircular("")
+            setSelectedGroup(value);
+            setOldCircular("");
+            setNewCircular("");
           }}
         >
           <SelectTrigger id="circular-group" className="w-[300px]">
@@ -154,6 +162,5 @@ export default function ComparePage() {
         </div>
       )}
     </div>
-  )
+  );
 }
-

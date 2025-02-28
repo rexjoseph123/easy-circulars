@@ -1,17 +1,21 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Card, CardContent } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ArrowLeft, Send, ExternalLink, Bookmark } from "lucide-react"
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import {
+  ArrowLeft, Send, ExternalLink, Bookmark,
+} from "lucide-react";
 import { Viewer, Worker } from "@react-pdf-viewer/core";
-import Link from "next/link"
-import axios from "axios"
-import { CHAT_QNA_URL } from '@/lib/constants';
+import Link from "next/link";
+import axios from "axios";
+import { Button } from "@/components/ui/button";
+import Input from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tabs, TabsContent, TabsList, TabsTrigger,
+} from "@/components/ui/tabs";
+import CHAT_QNA_URL from "@/lib/constants";
 
 interface Message {
   question: string;
@@ -38,148 +42,139 @@ interface Circular {
 }
 
 export default function CircularPage() {
-  const params = useParams()
-  const router = useRouter()
-  const id = String(params.id)
+  const params = useParams();
+  const router = useRouter();
+  const id = String(params.id);
 
   const [circular, setCircular] = useState<Circular | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
-  const [input, setInput] = useState("")
-  const [references, setReferences] = useState<Circular[]>([])
-  const [activeTab, setActiveTab] = useState("content")
+  const [input, setInput] = useState("");
+  const [references, setReferences] = useState<Circular[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("content");
 
-  const fetchCircular = async (id: string) => {
+  const createNewConversation = async (): Promise<string | null> => {
     try {
-      const response = await axios.get(
-        `${CHAT_QNA_URL}/circular/get`,
+      const response = await axios.post(`${CHAT_QNA_URL}/api/conversations/new`, {
+        db_name: "easy_circulars",
+      }, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      const { data } = response;
+      return data.conversation_id || null;
+    } catch (err) {
+      setError(`Error creating new conversation: ${err}`);
+      return null;
+    }
+  };
+
+  const updateCircularConversation = async (circularId: string, conversationId: string) => {
+    try {
+      await axios.patch(
+        `${CHAT_QNA_URL}/api/circulars`,
         {
-          params: { circular_id: id },
+          circular_id: circularId,
+          conversation_id: conversationId,
+        },
+        {
           headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
           },
-        }
-      );      
-  
-      const data = response.data;
+        },
+      );
+    } catch (err) {
+      setError(`Error updating circular: ${err}`);
+    }
+  };
+
+  const fetchConversation = async (conversationId: string) => {
+    try {
+      const response = await axios.get(`${CHAT_QNA_URL}/api/conversations/${conversationId}`, {
+        params: { db_name: "easy_circulars" },
+      });
+      setConversation(response.data);
+    } catch (err) {
+      setError(`Error fetching conversation: ${err}`);
+    }
+  };
+
+  const fetchCircular = async (circularId: string) => {
+    try {
+      const response = await axios.get(
+        `${CHAT_QNA_URL}/api/circulars`,
+        {
+          params: { circular_id: circularId },
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const { data } = response;
       setCircular(data.circular);
       setReferences(data.references);
-  
+
       let conversationId = data.circular.conversation_id;
-  
+
       if (!conversationId) {
         conversationId = await createNewConversation();
         if (conversationId) {
           await updateCircularConversation(id, conversationId);
         }
       }
-  
+
       if (conversationId) {
         await fetchConversation(conversationId);
       }
-    } catch (error) {
-      console.error("Error fetching circulars:", error);
+    } catch (err) {
+      setError(`Error fetching circular: ${err}`);
     }
   };
-  
-  const fetchConversation = async (conversationId: string) => {
-    try {
-      const response = await axios.get(`${CHAT_QNA_URL}/conversation/${conversationId}`, {
-        params: { db_name: "easy_circulars" },
-      });
-      setConversation(response.data);
-    } catch (error) {
-      console.error("Error fetching conversation:", error);
-    }
-  };
-  
-  
-  const createNewConversation = async (): Promise<string | null> => {
-    try {
-      const response = await axios.post(`${CHAT_QNA_URL}/conversation/new`, {
-        db_name: "easy_circulars",
-      }, {
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-      });
-  
-      const data = response.data;
-      console.log("New conversation created:", data);
-      return data.conversation_id || null;
-    } catch (error) {
-      console.error("Error creating new conversation:", error);
-      return null;
-    }
-  };
-  
-  const updateCircularConversation = async (circularId: string, conversationId: string) => {
-    try {
-      const response = await axios.patch(
-        `${CHAT_QNA_URL}/circular/update`,
-        { 
-          circular_id: circularId, 
-          conversation_id: conversationId,
-        }, 
-        {
-          headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-          },
-        }
-      );      
-  
-      const data = response.data;
-      console.log("Circular updated with new conversation ID:", data);
-    } catch (error) {
-      console.error("Error updating circular:", error);
-    }
-  };
-  
-  
+
   useEffect(() => {
     if (id) {
       fetchCircular(id);
     }
-  }, [id]);  
+  }, [id]);
 
   const toggleBookmark = async () => {
     if (circular) {
       const updatedCircular = { ...circular, bookmark: !circular.bookmark };
 
       await axios.patch(
-        `${CHAT_QNA_URL}/circular/update`,
-        { 
+        `${CHAT_QNA_URL}/api/circulars`,
+        {
           circular_id: circular.circular_id,
           bookmark: updatedCircular.bookmark,
-        }, 
+        },
         {
           headers: {
-            "Accept": "application/json",
+            Accept: "application/json",
             "Content-Type": "application/json",
           },
-        }
-      );      
+        },
+      );
       setCircular(updatedCircular);
     }
   };
 
   const handleSend = async () => {
     if (input.trim() && conversation) {
-  
       setInput("");
-  
+
       try {
-        console.log(input)
         const response = await axios.post(
-          `${CHAT_QNA_URL}/conversation/${conversation.conversation_id}`,
+          `${CHAT_QNA_URL}/api/conversations/${conversation.conversation_id}`,
           { db_name: "easy_circulars", question: input },
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { "Content-Type": "application/json" } },
         );
 
-        console.log(response)
-  
         const botResponse: Message = {
           question: input,
           answer: response.data.answer,
@@ -187,28 +182,26 @@ export default function CircularPage() {
           timestamp: new Date().toISOString(),
         };
 
-        setConversation((prev) =>
-          prev
-            ? {
-                ...prev,
-                history: [...prev.history, botResponse],
-                last_updated: new Date().toISOString(),
-              }
-            : null
-        );
-      } catch (error) {
-        console.error("Error sending message:", error);
+        setConversation((prev) => (prev
+          ? {
+            ...prev,
+            history: [...prev.history, botResponse],
+            last_updated: new Date().toISOString(),
+          }
+          : null));
+      } catch (err) {
+        setError(`Error sending message: ${err}`);
       }
     }
-  };  
+  };
 
   const handleReferenceClick = (refId: string) => {
-    setActiveTab("content")
-    router.push(`/circular/${refId}`)
-  }
+    setActiveTab("content");
+    router.push(`/circulars/${refId}`);
+  };
 
   if (!circular) {
-    return <div className="p-4">Circular not found</div>
+    return <div className="p-4">Circular not found</div>;
   }
 
   return (
@@ -228,6 +221,11 @@ export default function CircularPage() {
         </div>
       </div>
       <h2 className="text-3xl font-bold">{circular.title}</h2>
+      {error && (
+        <p className="text-red-500 bg-red-100 border border-red-400 p-2 rounded">
+          {error}
+        </p>
+      )}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="content">Content</TabsTrigger>
@@ -275,7 +273,7 @@ export default function CircularPage() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask about this circular..."
-                  onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                  onKeyDown={(e) => e.key === "Enter" && handleSend()}
                 />
                 <Button onClick={handleSend}>
                   <Send className="h-4 w-4 mr-2" />
@@ -307,6 +305,5 @@ export default function CircularPage() {
         </TabsContent>
       </Tabs>
     </div>
-  )
+  );
 }
-

@@ -1,18 +1,22 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Search, Bookmark, GitCompareArrowsIcon as CompareArrows, BarChartIcon as BubbleChart } from "lucide-react"
-import Link from "next/link"
-import { useEffect } from "react"
-import { usePageTitle } from "./contexts/PageTitleContext"
+import {
+  Search, Bookmark, GitCompareArrowsIcon as CompareArrows, BarChartIcon as BubbleChart,
+} from "lucide-react";
+import Link from "next/link";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+} from "@/components/ui/card";
+import { usePageTitle } from "./contexts/PageTitleContext";
 
 export default function HomePage() {
-  const { setPageTitle } = usePageTitle()
+  const { setPageTitle } = usePageTitle();
 
   useEffect(() => {
-    setPageTitle("Home")
-  }, [setPageTitle])
+    setPageTitle("Home");
+  }, [setPageTitle]);
 
   const features = [
     {
@@ -43,7 +47,7 @@ export default function HomePage() {
       description:
         "Explore connections between various RBI circulars and policies. Gain insights through interactive visualizations.",
     },
-  ]
+  ];
 
   return (
     <div className="space-y-8 animate-fade-in">
@@ -74,6 +78,5 @@ export default function HomePage() {
         ))}
       </div>
     </div>
-  )
+  );
 }
-

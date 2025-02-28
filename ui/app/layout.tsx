@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import type { ReactNode } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import type { ReactNode } from "react";
+import Link from "next/link";
 import {
   Search,
   Bookmark,
   GitCompareArrowsIcon as CompareArrows,
   BarChartIcon as BubbleChart,
   Home,
-} from "lucide-react"
-import { usePathname } from "next/navigation"
-import { PageTitleProvider } from "./contexts/PageTitleContext"
-import "./globals.css"
+} from "lucide-react";
+import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { PageTitleProvider } from "./contexts/PageTitleContext";
+import "./globals.css";
 
 function LayoutContent({ children }: { children: ReactNode }) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
@@ -24,7 +24,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
     { href: "/bookmarks", icon: Bookmark, label: "Bookmarks" },
     { href: "/compare", icon: CompareArrows, label: "Compare Circulars" },
     { href: "/visualize", icon: BubbleChart, label: "Visualize" },
-  ]
+  ];
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -64,7 +64,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
         <main className="flex-1 overflow-auto p-6 bg-background">{children}</main>
       </div>
     </div>
-  )
+  );
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -76,6 +76,5 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </PageTitleProvider>
       </body>
     </html>
-  )
+  );
 }
-

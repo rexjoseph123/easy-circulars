@@ -1,15 +1,17 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Search } from "lucide-react"
-import { usePageTitle } from "../contexts/PageTitleContext"
-import axios from "axios"
-import { CHAT_QNA_URL } from '@/lib/constants';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
+import axios from "axios";
+import Input from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Card, CardContent, CardHeader, CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import CHAT_QNA_URL from "@/lib/constants";
+import { usePageTitle } from "../contexts/PageTitleContext";
 
 interface Circular {
   circular_id: string;
@@ -22,37 +24,36 @@ interface Circular {
 }
 
 export default function SearchPage() {
-  const { setPageTitle } = usePageTitle()
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const { setPageTitle } = usePageTitle();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [circulars, setCirculars] = useState<Circular[]>([]);
-  const router = useRouter()
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-    setPageTitle("Search Circulars")
+    setPageTitle("Search Circulars");
     axios
-    .get<Circular[]>(`${CHAT_QNA_URL}/circular/get`, {
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    })
-    .then((response) => setCirculars(response.data))
-    .catch((error) => console.error("Error fetching circulars:", error));  
-    
-  }, [setPageTitle])
+      .get<Circular[]>(`${CHAT_QNA_URL}/api/circulars`, {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      })
+      .then((response) => setCirculars(response.data))
+      .catch((err) => setError(`Error fetching circulars: ${err}`));
+  }, [setPageTitle]);
 
   const filteredCirculars = circulars.filter(
-    (circular) =>
-      (circular.title.toLowerCase().includes(searchTerm.toLowerCase()) || searchTerm === "") &&
-      (selectedTags.length === 0 || selectedTags.some((tag) => circular.tags.includes(tag))),
-  )
+    (circular) => (circular.title.toLowerCase().includes(searchTerm.toLowerCase()) || searchTerm === "")
+      && (selectedTags.length === 0 || selectedTags.some((tag) => circular.tags.includes(tag))),
+  );
 
-  const allTags = Array.from(new Set(circulars.flatMap((c) => c.tags)))
+  const allTags = Array.from(new Set(circulars.flatMap((c) => c.tags)));
 
   const handleCircularClick = (id: string) => {
-    router.push(`/circular/${id}`)
-  }
+    router.push(`/circulars/${id}`);
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -68,6 +69,11 @@ export default function SearchPage() {
         </div>
         <Button className="bg-primary text-primary-foreground hover:bg-primary/90">Search</Button>
       </div>
+      {error && (
+        <p className="text-red-500 bg-red-100 border border-red-400 p-2 rounded">
+          {error}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         {allTags.map((tag) => (
           <Badge
@@ -76,8 +82,9 @@ export default function SearchPage() {
             className={`cursor-pointer ${
               selectedTags.includes(tag) ? "bg-emerald-green text-white" : "text-emerald-green"
             }`}
-            onClick={() =>
-              setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
+            onClick={() => setSelectedTags((prev) => (prev.includes(tag)
+              ? prev.filter((t) => t !== tag)
+              : [...prev, tag]))
             }
           >
             {tag}
@@ -108,6 +115,5 @@ export default function SearchPage() {
         ))}
       </div>
     </div>
-  )
+  );
 }
-
