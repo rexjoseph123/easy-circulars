@@ -35,6 +35,7 @@ from utils import (
 )
 
 from comps import CustomLogger, DocPath, opea_microservices, register_microservice
+from comps.parsers.parser_light import extract_text_and_tables
 from comps.parsers.treeparser import TreeParser
 from comps.parsers.tree import Tree
 from comps.parsers.node import Node
@@ -239,7 +240,18 @@ def create_chunks(node: Node, text_splitter: RecursiveCharacterTextSplitter):
         node_chunks.extend(create_chunks(node.get_child(i), text_splitter))
     return node_chunks
 
-def ingest_data_to_redis(doc_path: DocPath):
+def create_chunks_lightweight(text_content: List, tables: List, text_splitter: RecursiveCharacterTextSplitter):
+    chunks = []
+    for text in text_content:
+        text_chunks = text_splitter.split_text(text.content)
+        chunks.extend(text_chunks)
+    for table in tables:
+        table_description = get_table_description(table)
+        table_description_chunks = text_splitter.split_text(table_description)
+        chunks.extend(table_description_chunks)
+    return chunks 
+
+def ingest_data_to_redis(parser_type: str, doc_path: DocPath):
     """Ingest document to Redis."""
     path = doc_path.path
     if logflag:
@@ -252,18 +264,16 @@ def ingest_data_to_redis(doc_path: DocPath):
             separators=get_separators(),
         )
 
-
     ## TODO: call our custom pdf parser
     ## content
-    tree = Tree(path)
-    tree_parser = TreeParser()
-    tree_parser.populate_tree(tree)
-    chunks = create_chunks(tree.rootNode, text_splitter)
-
-
-    
-
-
+    if parser_type == "lightweight":
+        text_content, tables = extract_text_and_tables(path)
+        chunks = create_chunks_lightweight(text_content, tables, text_splitter)
+    else:
+        tree = Tree(path)
+        tree_parser = TreeParser()
+        tree_parser.populate_tree(tree)
+        chunks = create_chunks(tree.rootNode, text_splitter)
 
     ### Specially processing for the table content in PDFs
     ## TODO: use our custom table parser
@@ -281,6 +291,7 @@ def ingest_data_to_redis(doc_path: DocPath):
 @register_microservice(name="opea_service@prepare_doc_redis", endpoint="/v1/dataprep", host="0.0.0.0", port=6007)
 async def ingest_documents(
     files: Optional[Union[UploadFile, List[UploadFile]]] = File(None),
+    parser_type: str = Form("default"),
     link_list: Optional[str] = Form(None),
     chunk_size: int = Form(1500),
     chunk_overlap: int = Form(100),
@@ -321,6 +332,7 @@ async def ingest_documents(
             save_path = upload_folder + encode_file
             await save_content_to_local_disk(save_path, file)
             ingest_data_to_redis(
+                parser_type,
                 DocPath(
                     path=save_path,
                     chunk_size=chunk_size,

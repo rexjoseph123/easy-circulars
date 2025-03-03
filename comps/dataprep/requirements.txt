@@ -16,6 +16,7 @@ opentelemetry-api
 opentelemetry-exporter-otlp
 opentelemetry-sdk
 pandas
+pdfplumber
 Pillow
 prometheus-fastapi-instrumentator
 pymupdf
@@ -25,6 +26,7 @@ python-bidi
 python-docx
 python-pptx
 redis
+tabulate
 sentence_transformers
 shortuuid
 unstructured[all-docs]

@@ -103,10 +103,14 @@ python3 prepare_doc_redis.py
 The dataprep service will be running on http://localhost:6007
 
 #### Test the dataprep component by uploading a file:
+To use lightweight PDF parser:
+```bash
+curl -X POST "http://localhost:6007/v1/dataprep" -H "Content-Type: multipart/form-data" -F "files=@<path/to/pdf>" -F "parser_type=lightweight"
+```
+To use default PDF parser:
 ```bash
 curl -X POST "http://localhost:6007/v1/dataprep" -H "Content-Type: multipart/form-data" -F "files=@<path/to/pdf>"
 ```
-
 ---
 
 ### Retriever Service (New terminal - only required when changes are made/debugging)
