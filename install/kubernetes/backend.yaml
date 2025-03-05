@@ -19,12 +19,14 @@ spec:
       labels:
         io.kompose.service: easy-circulars-backend-deployment
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: g2-r1-2
       containers:
         - env:
             - name: EMBEDDING_SERVER_HOST_IP
               value: easy-circulars-embedding-service-deployment
             - name: EMBEDDING_SERVER_PORT
-              value: "80"
+              value: "6010"
             - name: HTTPS_PROXY
               value: http://proxy-dmz.intel.com:912
             - name: HTTP_PROXY
@@ -34,29 +36,31 @@ spec:
             - name: LLM_SERVER_HOST_IP
               value: easy-circulars-groq-deployment
             - name: LLM_SERVER_PORT
-              value: "8000"
+              value: "5101"
             - name: LOGFLAG
               value: "true"
             - name: MEGA_SERVICE_HOST_IP
-              value: 127.0.0.1
+              value: easy-circulars-backend-deployment
             - name: MEGA_SERVICE_PORT
               value: "5008"
             - name: MONGO_HOST
               value: easy-circulars-mongodb-deployment
+            - name: MONGO_PORT
+              value: "27018"
             - name: RERANK_SERVER_HOST_IP
               value: easy-circulars-tei-reranking-deployment
             - name: RERANK_SERVER_PORT
-              value: "80"
+              value: "8810"
             - name: RETRIEVER_SERVICE_HOST_IP
               value: easy-circulars-retriever-deployment
             - name: RETRIEVER_SERVICE_PORT
-              value: "7000"
+              value: "5011"
             - name: http_proxy
               value: http://proxy-dmz.intel.com:912
             - name: https_proxy
               value: http://proxy-dmz.intel.com:912
             - name: no_proxy
-              value: 127.0.0.1,localhost,.intel.com,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,easy-circulars-ui,easy-circulars-backend,easy-circulars-dataprep,easy-circulars-retriever,easy-circulars-tei-reranking,easy-circulars-embedding-service,easy-circulars-mongodb,easy-circulars-groq,easy-circulars-redis,192.168.49.2
+              value: 127.0.0.1,localhost,.intel.com,easy-circulars-embedding-service-deployment,easy-circulars-groq-deployment,easy-circulars-backend-deployment,easy-circulars-mongodb-deployment,easy-circulars-tei-reranking-deployment,easy-circulars-retriever-deployment
           image: tanmayudupa124/easy-circulars-backend:latest
           imagePullPolicy: Always
           name: easy-circulars-backend-container
@@ -81,6 +85,6 @@ spec:
       port: 5013
       protocol: TCP
       targetPort: 5008
-      nodePort: 30001
+      nodePort: 30014
   selector:
     io.kompose.service: easy-circulars-backend-deployment

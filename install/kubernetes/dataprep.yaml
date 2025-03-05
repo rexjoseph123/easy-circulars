@@ -21,6 +21,8 @@ spec:
       labels:
         io.kompose.service: easy-circulars-dataprep-deployment
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: g2-r1-2
       containers:
         - env:
             - name: HTTPS_PROXY
@@ -32,37 +34,32 @@ spec:
             - name: LLM_SERVER_HOST_IP
               value: easy-circulars-groq-deployment
             - name: LLM_SERVER_PORT
-              value: "8000"
+              value: "5101"
             - name: LOGFLAG
               value: "true"
             - name: REDIS_URL
-              value: redis://easy-circulars-redis:6379
+              value: redis://easy-circulars-redis-deployment:6381
             - name: TEI_EMBEDDING_ENDPOINT
-              value: http://easy-circulars-embedding-service:80
+              value: http://easy-circulars-embedding-service-deployment:6010
             - name: http_proxy
               value: http://proxy-dmz.intel.com:912
             - name: https_proxy
               value: http://proxy-dmz.intel.com:912
             - name: no_proxy
-              value: 127.0.0.1,localhost,.intel.com,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,easy-circulars-ui,easy-circulars-backend,easy-circulars-dataprep,easy-circulars-retriever,easy-circulars-tei-reranking,easy-circulars-embedding-service,easy-circulars-mongodb,easy-circulars-groq,easy-circulars-redis,192.168.49.2
+              value: 127.0.0.1,localhost,.intel.com,easy-circulars-redis-deployment,easy-circulars-groq-deployment
           image: tanmayudupa124/easy-circulars-dataprep:latest
           name: easy-circulars-dataprep-container
           ports:
             - containerPort: 6007
               protocol: TCP
           volumeMounts:
-            - mountPath: /.cache
-              name: easy-circulars-dataprep-claim0
-            - mountPath: /home/user/comps/dataprep/out
-              name: easy-circulars-dataprep-claim1
+            - mountPath: ~/.cache/huggingface/hub
+              name: easy-circulars-tei-reranking-claim0
       restartPolicy: Always
       volumes:
-        - name: easy-circulars-dataprep-claim0
-          persistentVolumeClaim:
-            claimName: easy-circulars-dataprep-claim0
-        - name: easy-circulars-dataprep-claim1
-          persistentVolumeClaim:
-            claimName: easy-circulars-dataprep-claim1
+        - name: easy-circulars-tei-reranking-claim0
+          hostPath:
+            path: /mnt/hf_cache
 ---
 apiVersion: v1
 kind: Service
@@ -80,34 +77,6 @@ spec:
       port: 5012
       protocol: TCP
       targetPort: 6007
-      nodePort: 30002
+      nodePort: 30012
   selector:
     io.kompose.service: easy-circulars-dataprep-deployment
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    io.kompose.service: easy-circulars-dataprep-claim0
-  name: easy-circulars-dataprep-claim0
-  namespace: easy-circulars
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  labels:
-    io.kompose.service: easy-circulars-dataprep-claim1
-  name: easy-circulars-dataprep-claim1
-  namespace: easy-circulars
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi

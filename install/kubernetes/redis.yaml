@@ -19,6 +19,8 @@ spec:
       labels:
         io.kompose.service: easy-circulars-redis-deployment
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: g2-r1-2
       containers:
         - image: redis/redis-stack:7.2.0-v9
           name: easy-circulars-redis-container
@@ -50,6 +52,6 @@ spec:
       port: 8002
       protocol: TCP
       targetPort: 8001
-      nodePort: 30010
+      nodePort: 30016
   selector:
     io.kompose.service: easy-circulars-redis-deployment

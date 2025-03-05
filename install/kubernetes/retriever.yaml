@@ -19,6 +19,8 @@ spec:
       labels:
         io.kompose.service: easy-circulars-retriever-deployment
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: g2-r1-2
       containers:
         - env:
             - name: HTTPS_PROXY
@@ -30,15 +32,15 @@ spec:
             - name: INDEX_NAME
               value: rag-redis
             - name: REDIS_URL
-              value: redis://easy-circulars-redis:6379
+              value: redis://easy-circulars-redis-deployment:6381
             - name: TEI_EMBEDDING_ENDPOINT
-              value: http://easy-circulars-embedding-service:80
+              value: http://easy-circulars-embedding-service-deployment:6010
             - name: http_proxy
               value: http://proxy-dmz.intel.com:912
             - name: https_proxy
               value: http://proxy-dmz.intel.com:912
             - name: no_proxy
-              value: 127.0.0.1,localhost,.intel.com,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,easy-circulars-ui,easy-circulars-backend,easy-circulars-dataprep,easy-circulars-retriever,easy-circulars-tei-reranking,easy-circulars-embedding-service,easy-circulars-mongodb,easy-circulars-groq,easy-circulars-redis,192.168.49.2
+              value: 127.0.0.1,localhost,.intel.com,easy-circulars-redis-deployment,easy-circulars-embedding-service-deployment
           image: tanmayudupa124/easy-circulars-retriever:latest
           name: easy-circulars-retriever-container
           ports:

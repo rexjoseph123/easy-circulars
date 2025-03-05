@@ -19,6 +19,8 @@ spec:
       labels:
         io.kompose.service: easy-circulars-mongodb-deployment
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: g2-r1-2
       containers:
         - image: mongo
           name: easy-circulars-mongodb-container
