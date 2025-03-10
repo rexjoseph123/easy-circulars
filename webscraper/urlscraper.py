@@ -5,7 +5,6 @@ import logging
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from typing import List, Optional
-from download import download_pdf
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 

@@ -1,97 +1,168 @@
-import datetime
 import os.path
 import re
 import requests
 import logging
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin
-from typing import List, Optional
+from typing import List
 from urlscraper import URLScraper
-from pdfplumber import pdf
+from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 
 class Circular:
-    def __init__(self, circular_url):
-        self._id = None
-        self.url = circular_url
-        self.title = None
-        self.tags = []
-        self.date = None
-        self.bookmark = None
-        self.path = "ui/public/pdfs"
-        self.conversation_id = None
-        self.references = None
-        self.pdf_url = None
+    def __init__(self, circular_url: str):
+        """
+        Initializes a Circular object to represent and process an RBI circular.
 
-    def __repr__(self):
-            return f"_id = {self._id}\ntitle = {self.title}\ntags = {self.tags}\ndate = {self.date}\nbookmark = {self.bookmark}\npath = {self.path}\nconversation_id = {self.conversation_id}\nreferences = {self.references}\npdf_url = {self.pdf_url}"
+        Args:
+            circular_url (str): The URL of the circular webpage.
+        """
+        self._id: str | None = None
+        self.url: str = circular_url
+        self.title: str | None = None
+        self.tags: List[str] = []
+        self.date: str | None = None
+        self.bookmark: str | None = None
+        self.path: str = "ui/public/pdfs"
+        self.conversation_id: str | None = None
+        self.references: str | None = None
+        self.pdf_url: str | None = None
 
-    def fetch_pdf_url(self):
-        scraper = URLScraper(url=self.url)
-        pdf_url = scraper.filter_urls(r"https://rbidocs\.rbi\.org\.in/rdocs/Notification/PDFs/[^\"\s]+\.PDF")
-        self.pdf_url = pdf_url[0]
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Circular object.
 
-    def fetch_metadata(self):
-        response = requests.get(self.url)
-        response.raise_for_status()
-        soup = BeautifulSoup(response.text, 'html.parser')
+        Returns:
+            str: A formatted string with all the circular's attributes.
+        """
+        return (f"_id = {self._id}\n"
+                f"title = {self.title}\n"
+                f"tags = {self.tags}\n"
+                f"date = {self.date}\n"
+                f"bookmark = {self.bookmark}\n"
+                f"path = {self.path}\n"
+                f"conversation_id = {self.conversation_id}\n"
+                f"references = {self.references}\n"
+                f"pdf_url = {self.pdf_url}")
 
-    # Extract title using a CSS selector for <tr> > <td.tableheader> > <b>
-        title_tag = soup.select_one('tr td.tableheader b')
+    def fetch_pdf_url(self) -> str:
+        """
+        Extracts the PDF URL from the circular webpage.
 
-        if title_tag:
-            self.title = title_tag.get_text(strip=True)
+        Returns:
+            str: The URL of the circular's PDF document.
 
-        circular_info_tag = soup.select_one('tr td p')
-        if circular_info_tag:
-            # Use '\n' as separator for <br> converted to newline
-            circular_text = circular_info_tag.get_text(separator='\n', strip=True)
-            # Regex: first line matches RBI/... and second line matches CO....
-            circular_number_match = re.search(
-                r'(RBI/\d{4}-\d{2,4}/\d+)\s*[\r\n]+\s*(CO\.[^\r\n]+)',
-                circular_text,
-                re.S
-            )
-            if circular_number_match:
-                circular_number_rbi = circular_number_match.group(1)
-                circular_number_co = circular_number_match.group(2)
-                self._id = circular_number_rbi + '-' + circular_number_co
+        Raises:
+            ValueError: If no matching PDF URL is found.
+        """
+        try:
+            scraper = URLScraper(url=self.url)
+            pdf_url = scraper.filter_urls(r"https://rbidocs\.rbi\.org\.in/rdocs/Notification/PDFs/[^\"\s]+\.PDF")
+            if not pdf_url:
+                raise ValueError("No PDF URL found on the webpage.")
+            self.pdf_url = pdf_url[0]
+            return self.pdf_url
+        except Exception as e:
+            logging.error(f"Error fetching PDF URL: {e}")
+            raise
 
-        date_tags = soup.find_all('p', align='right')
-        date_pattern = re.compile(r'^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}$')
-        for tag in date_tags:
-            if date_pattern.match(tag.get_text(strip=True)):
-                self.date = tag.get_text(strip=True)
-                break
+    def fetch_metadata(self) -> None:
+        """
+        Scrapes and updates the circular's metadata, including title, circular ID, and date.
 
-        pdf_url = soup.find('a', href=re.compile(r'https://rbidocs\.rbi\.org\.in/rdocs/Notification/PDFs/[^"\s]+\.PDF'))
-        if pdf_url is not None:
-            self.pdf_url = pdf_url['href']
+        Raises:
+            requests.HTTPError: If the request to the circular webpage fails.
+        """
+        try:
+            response = requests.get(self.url)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, 'html.parser')
 
+            title_tag = soup.select_one('tr td.tableheader b')
+            if title_tag:
+                self.title = title_tag.get_text(strip=True)
 
-    def download_pdf(self, path=None):
-        if self.pdf_url is None:
-            print("PDF url not set.\nTrying to fetch PDF url")
-            self.fetch_pdf_url()
+            circular_info_tag = soup.select_one('tr td p')
+            if circular_info_tag:
+                circular_text = circular_info_tag.get_text(separator='\n', strip=True)
+                circular_number_match = re.search(
+                    r'(RBI/\d{4}-\d{2,4}/\d+)\s*[\r\n]+\s*(CO\.[^\r\n]+)',
+                    circular_text,
+                    re.S
+                )
+                if circular_number_match:
+                    circular_number_rbi = circular_number_match.group(1)
+                    circular_number_co = circular_number_match.group(2)
+                    self._id = f"{circular_number_rbi}-{circular_number_co}"
+
+            date_tags = soup.find_all('p', align='right')
+            date_pattern = re.compile(r'^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}$')
+            for tag in date_tags:
+                if date_pattern.match(tag.get_text(strip=True)):
+                    self.date = tag.get_text(strip=True)
+                    break
+
+            pdf_url = soup.find('a', href=re.compile(r'https://rbidocs\.rbi\.org\.in/rdocs/Notification/PDFs/[^"\s]+\.PDF'))
+            if pdf_url:
+                self.pdf_url = pdf_url['href']
+
+        except requests.RequestException as e:
+            logging.error(f"Error fetching metadata: {e}")
+            raise
+
+    def download_pdf(self, path: str = None) -> bool:
+        """
+        Downloads the circular's PDF to the specified path.
+
+        Args:
+            path (str, optional): Directory to save the downloaded PDF.
+                Defaults to the class attribute `self.path`.
+
+        Returns:
+            bool: True if the PDF download is successful, False otherwise.
+
+        Raises:
+            requests.RequestException: If the request to download the PDF fails.
+        """
+        try:
             if self.pdf_url is None:
-                return "Failed to fetch PDF url"
+                logging.info("PDF URL not set. Trying to fetch PDF URL...")
+                self.fetch_pdf_url()
+                if self.pdf_url is None:
+                    logging.error("Failed to fetch PDF URL.")
+                    return False
 
-        path = path or self.path
-        if path is None:
-            return "PDF path not set."
-        response = requests.get(self.pdf_url)
-        if response.status_code == 200:
-            with open(os.path.join(self.path, os.path.basename(self.pdf_url)), "wb") as pdf_file:
+            path = path or self.path
+            if not path:
+                logging.error("PDF path not set.")
+                return False
+
+            response = requests.get(self.pdf_url)
+            response.raise_for_status()
+
+            root = Path(__file__).parent.parent
+            path = root / path / os.path.basename(self.pdf_url)
+            logging.info(path)
+
+            with open(path, "wb") as pdf_file:
+                logging.info("opened")
                 pdf_file.write(response.content)
-            return "Downloaded successfully."
-        return "Failed to download."
+            logging.info(f"Downloaded successfully: {os.path.join(path, os.path.basename(self.pdf_url))}")
+            return True
+
+        except (requests.RequestException, IOError) as e:
+            logging.error(f"Error downloading PDF: {e}")
+            return False
+
 
 if __name__ == "__main__":
     url = "https://rbi.org.in/Scripts/BS_CircularIndexDisplay.aspx?Id=12789"
     c = Circular(url)
-    c.fetch_metadata()
-    x = c.download_pdf()
-    print(x)
-    print(c)
+
+    try:
+        c.fetch_metadata()
+        if c.download_pdf():
+            print(c)
+    except Exception as e:
+        logging.error(f"Process failed: {e}")
