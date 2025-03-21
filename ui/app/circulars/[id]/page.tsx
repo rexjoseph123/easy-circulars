@@ -238,7 +238,7 @@ export default function CircularPage() {
               <ScrollArea className="h-[55vh] mb-4">
                 <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.js">
                   <div>
-                    <Viewer fileUrl={circular.url} />
+                    <Viewer fileUrl={circular.path} />
                   </div>
                 </Worker>
               </ScrollArea>

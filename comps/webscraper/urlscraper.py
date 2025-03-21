@@ -8,13 +8,6 @@ from typing import List, Optional
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
-
-class Circular:
-    def __init__(self, url):
-        self.url = url
-
-
-
 class URLScraper:
     """
     A web scraper that fetches URLs and PDF links from a webpage.
@@ -23,7 +16,7 @@ class URLScraper:
         url (str): The starting URL to scrape.
         soup (Optional[BeautifulSoup]): Parsed HTML of the webpage.
         urls (List[str]): Unique list of discovered URLs on the webpage.
-        pdf_urls (List[str]): List of PDF URLs on the webpage.
+        pdf_urls (List[str]): List of PDF URLs on the weThis is request sentbpage.
     """
 
     def __init__(self, url: str):
@@ -37,7 +30,6 @@ class URLScraper:
         self.session = requests.Session()
         self.soup = self._fetch_soup()
         self.urls = self.fetch_unique_urls()
-        self.pdf_urls = self.fetch_pdf_urls()
 
     def __del__(self):
         """ Destructor method to clean up resources. """
@@ -135,26 +127,6 @@ class URLScraper:
         url = url or self.url
         return list(set(self.fetch_all_urls(url)))
 
-    def fetch_pdf_urls(self, url: Optional[str] = None, year: int = None, month: int = None) -> List[str]:
-        """
-        Extracts all PDF URLs from the given webpage.
-
-        Args:
-            url (Optional[str]): The URL of the webpage to extract PDF URLs from.
-            year (int): Year for which to fetch circulars.
-            month (int): Month for which to fetch circulars.
-        Returns:
-            List[str]: Unique list of discovered pdf URLs on the webpage.
-        """
-        url = url or self.url
-        soup = self._fetch_soup(url, year=year, month=month) if url != self.url else self.soup
-
-        return [
-            urljoin(url, link["href"])
-            for link in soup.find_all("a", href=True)
-            if link["href"].lower().endswith(".pdf")
-        ]
-
     # noinspection PyIncorrectDocstring
     def filter_urls(self, pattern: str, urls: Optional[List[str]] = None) -> List[str]:
         """
@@ -181,12 +153,7 @@ class URLScraper:
             List[str]: All discovered PDF URLs.
         """
         matches = self.filter_urls(pattern=page_layer, urls=self.fetch_unique_urls(url=self.url))
-        return [
-            pdf
-            for page in matches
-            for pdf in self.fetch_pdf_urls(url=page)
-            if re.fullmatch(pattern=url_layer, string=pdf)
-        ]
+        return matches
 
     def get_circular_by_date(self, month: int = None, year: int = None):
         if month and year is None:

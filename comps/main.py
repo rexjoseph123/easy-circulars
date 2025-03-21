@@ -16,7 +16,7 @@ from comps.proto.api_protocol import (
     UsageInfo,
 )
 from comps.proto.docarray import LLMParams, RerankerParms, RetrieverParms
-from comps.circulars.metadata_operations import handle_circular_update, handle_circular_get
+from comps.circulars.metadata_operations import handle_circular_update, handle_circular_get, handle_circular_post
 from fastapi.responses import StreamingResponse
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -857,6 +857,7 @@ class ConversationRAGService(ChatQnAService):
         self.service.add_route("/api/conversations", self.handle_list_conversations, methods=["GET"])
         self.service.add_route("/api/circulars", handle_circular_update, methods=["PATCH"])
         self.service.add_route("/api/circulars", handle_circular_get, methods=["GET"])
+        self.service.add_route("/api/circulars", handle_circular_post, methods=["POST"])
         self.service.start()
 
 if __name__ == "__main__":

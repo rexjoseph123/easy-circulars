@@ -10,6 +10,17 @@ class CircularUpdateData(BaseModel):
     bookmark: Optional[bool] = None
     conversation_id: Optional[str] = None 
 
+async def handle_circular_post(request: Request):
+    try:
+        circular_data = await request.json()
+        inserted_circular_data = collection.insert_one(circular_data)
+        circular_id = str(inserted_circular_data.inserted_id)
+        return circular_id
+
+    except Exception as e:
+        print(e)
+        raise Exception(e)  
+
 def handle_circular_update(circularUpdate: CircularUpdateData):
     try:
         update_fields = {}

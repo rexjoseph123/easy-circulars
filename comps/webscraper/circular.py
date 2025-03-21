@@ -87,14 +87,12 @@ class Circular:
             if circular_info_tag:
                 circular_text = circular_info_tag.get_text(separator='\n', strip=True)
                 circular_number_match = re.search(
-                    r'(RBI/\d{4}-\d{2,4}/\d+)\s*[\r\n]+\s*(CO\.[^\r\n]+)',
+                    r'RBI/\d{2,4}-\d{2,4}/\d+|[A-Z]+\.No\.[A-Z]+(\.[A-Z]+)?\.\d+/\d{2}\.\d{2}\.\d+/\d{4}-\d{2}',
                     circular_text,
                     re.S
                 )
                 if circular_number_match:
-                    circular_number_rbi = circular_number_match.group(1)
-                    circular_number_co = circular_number_match.group(2)
-                    self._id = f"{circular_number_rbi}-{circular_number_co}"
+                    self._id = circular_text.replace('\n', '-')
 
             date_tags = soup.find_all('p', align='right')
             date_pattern = re.compile(r'^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}$')
@@ -141,11 +139,11 @@ class Circular:
             response = requests.get(self.pdf_url)
             response.raise_for_status()
 
-            root = Path(__file__).parent.parent
-            path = root / path / os.path.basename(self.pdf_url)
-            logging.info(path)
+            root = Path(__file__).parent.parent.parent
+            self.path = root / path / os.path.basename(self.pdf_url)
+            logging.info(self.path)
 
-            with open(path, "wb") as pdf_file:
+            with open(self.path, "wb") as pdf_file:
                 logging.info("opened")
                 pdf_file.write(response.content)
             logging.info(f"Downloaded successfully: {os.path.join(path, os.path.basename(self.pdf_url))}")
@@ -157,7 +155,7 @@ class Circular:
 
 
 if __name__ == "__main__":
-    url = "https://rbi.org.in/Scripts/BS_CircularIndexDisplay.aspx?Id=12789"
+    url = "https://rbi.org.in/Scripts/BS_CircularIndexDisplay.aspx?Id=12611"
     c = Circular(url)
 
     try:
