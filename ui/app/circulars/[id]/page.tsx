@@ -32,19 +32,21 @@ interface Conversation {
 }
 
 interface Circular {
-  circular_id: string;
+  _id: string;
   title: string;
   tags: string[];
   date: string;
-  url: string;
   bookmark: boolean;
+  path: string;
+  conversation_id: string;
   references: string[];
+  pdf_url: string;
 }
 
 export default function CircularPage() {
   const params = useParams();
   const router = useRouter();
-  const id = String(params.id);
+  const id = decodeURIComponent(params.id as string);
 
   const [circular, setCircular] = useState<Circular | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -150,7 +152,7 @@ export default function CircularPage() {
       await axios.patch(
         `${CHAT_QNA_URL}/api/circulars`,
         {
-          circular_id: circular.circular_id,
+          circular_id: circular._id,
           bookmark: updatedCircular.bookmark,
         },
         {
@@ -197,7 +199,7 @@ export default function CircularPage() {
 
   const handleReferenceClick = (refId: string) => {
     setActiveTab("content");
-    router.push(`/circulars/${refId}`);
+    router.push(`/circulars/${encodeURIComponent(refId)}`);
   };
 
   if (!circular) {
@@ -289,9 +291,9 @@ export default function CircularPage() {
               <ScrollArea className="h-[50vh]">
                 {references.map((ref) => (
                   <div
-                    key={ref.circular_id}
+                    key={ref._id}
                     className="bg-muted text-sm p-2 mb-2 rounded cursor-pointer hover:bg-muted/80"
-                    onClick={() => handleReferenceClick(ref.circular_id)}
+                    onClick={() => handleReferenceClick(ref._id)}
                   >
                     <div className="font-medium hover:underline flex items-center">
                       {ref.title}

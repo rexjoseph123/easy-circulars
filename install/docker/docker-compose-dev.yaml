@@ -33,6 +33,24 @@ services:
       HTTP_PROXY: ${HTTP_PROXY}
       HTTPS_PROXY: ${HTTPS_PROXY}
 
+  easy-circulars-webscraper:
+    image: easy-circulars/webscraper:latest
+    container_name: easy-circulars-webscraper
+    ports:
+      - "5102:8002"
+    volumes:
+      - ${UI_DIR}:/home/user/ui
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+      SERVER_HOST_IP: ${SERVER_HOST_IP}
+      SERVER_PORT: ${SERVER_PORT}     
+      DATAPREP_HOST_IP: ${DATAPREP_HOST_IP}
+      DATAPREP_PORT: ${DATAPREP_PORT}    
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+
   easy-circulars-tei-reranking:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
     container_name: easy-circulars-tei-reranking

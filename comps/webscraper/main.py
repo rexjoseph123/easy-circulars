@@ -2,9 +2,10 @@ from comps import CustomLogger
 from urlscraper import URLScraper
 from circular import Circular
 from fastapi import Request
+from fastapi.responses import JSONResponse
 import os
 import requests
-
+from pathlib import Path
 from comps import  MicroService, ServiceRoleType
 
 logger = CustomLogger("web_scraper")
@@ -14,7 +15,7 @@ dataprep_host_ip = os.getenv("DATAPREP_HOST_IP")
 dataprep_port = os.getenv("DATAPREP_PORT")
     
 class WebScraperService:
-    def __init__(self, host="0.0.0.0", port=8000):
+    def __init__(self, host="0.0.0.0", port=8002):
         self.host = host
         self.port = port
         self.endpoint = "/v1/scrape"
@@ -73,10 +74,18 @@ class WebScraperService:
                 if c.download_pdf():
                     print(c)
                     self.post_circular_to_api(c)
-                    self.send_request_to_dataprep(c.path)
+                    root = Path(__file__).parent.parent.parent
+                    s = "ui/public" + str(c.path)
+                    path = root / s
+                    self.send_request_to_dataprep(path)
+
+            return JSONResponse(
+                content={"status": "success"},
+                status_code=200
+            )
         except Exception as e:
             logger.info(e)
 
 if __name__ == "__main__":
-    web_scraper_service = WebScraperService(port=8010)
+    web_scraper_service = WebScraperService(port=8002)
     web_scraper_service.start()

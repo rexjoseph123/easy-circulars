@@ -57,7 +57,7 @@ export default function BookmarksPage() {
   };
 
   const handleCircularClick = (id: string) => {
-    router.push(`/circulars/${id}`);
+    router.push(`/circulars/${encodeURIComponent(id)}`);
   };
 
   return (

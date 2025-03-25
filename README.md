@@ -1,8 +1,6 @@
 # Easy Circulars
 
-## Setup
-
-### Intel environment
+## Intel environment
 ```bash
 export https_proxy=http://proxy-dmz.intel.com:912
 export http_proxy=http://proxy-dmz.intel.com:912
@@ -11,9 +9,9 @@ export HTTP_PROXY=http://proxy-dmz.intel.com:912
 ```
 
 
-### Mandatory services
+## Mandatory services
 ```bash
-export no_proxy=127.0.0.1,localhost,.intel.com,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
+export no_proxy=127.0.0.1,localhost,.intel.com,172.17.0.1,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
 export EMBEDDING_MODEL_ID="BAAI/bge-base-en-v1.5"
 export RERANK_MODEL_ID="BAAI/bge-reranker-base"
 export LLM_MODEL_ID="meta-llama/Meta-Llama-3.1-8B-Instruct"
@@ -34,9 +32,15 @@ export GROQ_API_KEY=<GROQ_API_KEY>
 export MONGO_HOST=localhost
 export MONGO_PORT=27018
 export MONGO_DB=easy_circulars
+export SERVER_HOST_IP=172.17.0.1
+export SERVER_PORT=9001     
+export DATAPREP_HOST_IP=172.17.0.1
+export DATAPREP_PORT=6007   
+export UI_DIR=<path/to/easy-circulars/ui>
 ```
-Build the Groq and Retriever images:
+Build the Webscraper, Groq and Retriever images:
 ```bash
+docker buildx build --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy -t easy-circulars/webscraper:latest -f comps/webscraper/Dockerfile .
 docker buildx build --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy -t easy-circulars/groq:latest -f comps/groq/Dockerfile  .;
 docker buildx build --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy -t easy-circulars/retriever:latest -f comps/retriever/Dockerfile . 
 ```
@@ -47,39 +51,8 @@ docker compose -f install/docker/docker-compose-dev.yaml up
 
 ---
 
-### Ingesting Mock Data into MongoDB
-
-#### Enter the MongoDB container
-```bash
-docker exec -it easy-circulars-mongodb mongosh
-```
-
-#### Switch to the `easy_circulars` database
-```javascript
-use easy_circulars
-```
-
-#### Insert mock circulars
-```javascript
-const mockCirculars = [ { _id: '1', title: "Master Circular – Deendayal Antyodaya Yojana - National Rural Livelihoods Mission (DAY-NRLM)", tags: ["master", "rural"], date: "2019-07-01", bookmark: false, url: "/pdfs/4MC01072019506189EF9A684645AF078EAA43E6BFC5.pdf", conversation_id: "", references: ['2', '3']}, { _id: '2', title: "Master Circular – Deendayal Antyodaya Yojana - National Rural Livelihoods Mission (DAY-NRLM)", tags: ["master", "rural"], date: "2018-07-03", bookmark: false, url: "/pdfs/09MC626B2B1F53BE4DD8B0A000EBAC40E2DB.pdf", conversation_id: "", references: []}, { _id: '3', title: "Priority Sector Lending- Restructuring of SGSY as National Rural Livelihood Mission (NRLM) - Aajeevika", tags: ["lending", "rural"], date: "2013-06-27", bookmark: false, url: "/pdfs/NRLM27062013.pdf", conversation_id: "", references: []}];
-
-db.circulars.insertMany(mockCirculars);
-```
-
-#### Check if data has been inserted
-```javascript
-db.circulars.find().pretty();
-```
-
-#### Exit Mongo Shell
-```javascript
-exit
-```
-
----
-
-### Dataprep Service (New terminal - only required when uploading files/debugging)
-#### Activate environment:
+## Dataprep Service (New terminal - required when running web scraper)
+### Activate environment:
 ```bash
 python3 -m venv venv
 source venv/bin/activate
@@ -96,13 +69,13 @@ export LLM_SERVER_PORT=5101
 export no_proxy=127.0.0.1,localhost,.intel.com,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
 ```
 
-#### Run the service:
+### Run the service:
 ```bash
 python3 prepare_doc_redis.py
 ```
 The dataprep service will be running on http://localhost:6007
 
-#### Test the dataprep component by uploading a file:
+### Test the dataprep component by uploading a file:
 To use lightweight PDF parser:
 ```bash
 curl -X POST "http://localhost:6007/v1/dataprep" -H "Content-Type: multipart/form-data" -F "files=@<path/to/pdf>" -F "parser_type=lightweight"
@@ -110,35 +83,6 @@ curl -X POST "http://localhost:6007/v1/dataprep" -H "Content-Type: multipart/for
 To use default PDF parser:
 ```bash
 curl -X POST "http://localhost:6007/v1/dataprep" -H "Content-Type: multipart/form-data" -F "files=@<path/to/pdf>"
-```
----
-
-### Retriever Service (New terminal - only required when changes are made/debugging)
-#### Activate environment:
-```bash
-source venv/bin/activate
-cd comps/retriever
-pip install -r requirements.txt # only once
-
-export PYTHONPATH=<path/to/easy-circulars/dir>
-export HUGGINGFACEHUB_API_TOKEN=<token>
-export REDIS_URL="redis://localhost:6381"
-export INDEX_NAME="rag-redis"
-export no_proxy=127.0.0.1,localhost,.intel.com,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
-```
-
-#### Run the service:
-```bash
-python3 retriever_redis.py
-```
-
-#### Test the retriever component:
-```bash
-export your_embedding=$(python3 -c "import random; embedding = [random.uniform(-1, 1) for _ in range(768)]; print(embedding)")
-curl http://localhost:7000/v1/retrieval \
-  -X POST \
-  -d "{\"text\":\"test\",\"embedding\":${your_embedding}}" \
-  -H 'Content-Type: application/json'
 ```
 
 ---
@@ -209,6 +153,17 @@ curl -X GET "http://localhost:9001/api/conversations?limit=3&db_name=easy_circul
 
 ---
 
+## Extracting PDFs from the RBI Website using the Web Scraper Service
+
+To extract circulars for a specific month and year, send a POST request to the service:
+```bash
+curl -X POST "http://localhost:5102/v1/scrape" \    
+     -H "Content-Type: application/json" \
+     -d '{"month": "{month}", "year": "{year}"}'
+```
+
+---
+
 ## UI (new terminal)
 ```bash
 export no_proxy=127.0.0.1,localhost,.intel.com,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
@@ -229,8 +184,8 @@ The frontend will be running on http://localhost:3000
 
 ---
 
-### Debugging:
-#### Groq service:
+## Debugging:
+### Groq service:
 ```bash
 curl -N -X POST http://localhost:5101/v1/chat/completions \
   -H "Content-Type: application/json" \

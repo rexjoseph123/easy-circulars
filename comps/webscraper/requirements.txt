@@ -1,2 +1,9 @@
-requests
 beautifulsoup4
+fastapi
+requests
+numpy
+docarray
+prometheus_fastapi_instrumentator
+uvicorn
+pillow
+aiohttp

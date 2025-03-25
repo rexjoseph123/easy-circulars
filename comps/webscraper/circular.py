@@ -147,12 +147,12 @@ class Circular:
                 logging.info("opened")
                 pdf_file.write(response.content)
             logging.info(f"Downloaded successfully: {os.path.join(path, os.path.basename(self.pdf_url))}")
+            self.path = Path("/pdfs") / os.path.basename(self.pdf_url)
             return True
 
         except (requests.RequestException, IOError) as e:
             logging.error(f"Error downloading PDF: {e}")
             return False
-
 
 if __name__ == "__main__":
     url = "https://rbi.org.in/Scripts/BS_CircularIndexDisplay.aspx?Id=12611"

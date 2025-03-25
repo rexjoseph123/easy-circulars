@@ -52,7 +52,7 @@ export default function SearchPage() {
   const allTags = Array.from(new Set(circulars.flatMap((c) => c.tags)));
 
   const handleCircularClick = (id: string) => {
-    router.push(`/circulars/${id}`);
+    router.push(`/circulars/${encodeURIComponent(id)}`);
   };
 
   return (
