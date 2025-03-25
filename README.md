@@ -159,7 +159,7 @@ To extract circulars for a specific month and year, send a POST request to the s
 ```bash
 curl -X POST "http://localhost:5102/v1/scrape" \    
      -H "Content-Type: application/json" \
-     -d '{"month": "{month}", "year": "{year}"}'
+     -d '{"month": 11, "year": 2023}'
 ```
 
 ---
