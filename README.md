@@ -51,7 +51,7 @@ docker compose -f install/docker/docker-compose-dev.yaml up
 
 ---
 
-## Dataprep Service (New terminal - required when running web scraper)
+## Dataprep Service (New terminal - required by web scraper)
 ### Activate environment:
 ```bash
 python3 -m venv venv
