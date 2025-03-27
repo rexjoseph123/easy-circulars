@@ -27,12 +27,19 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: g2-r1-2
       containers:
-        - image: tanmayudupa124/easy-circulars-ui:latest
+        - image: navchetna/easy-circulars-ui:latest
           name: easy-circulars-ui-container
           ports:
             - containerPort: 3000
               protocol: TCP
+          volumeMounts:
+            - mountPath: /usr/src/app/public/pdfs
+              name: pdfs
       restartPolicy: Always
+      volumes:
+        - hostPath:
+            path: /home/intel/easy-circulars/ui/public/pdfs
+          name: pdfs
 ---
 apiVersion: v1
 kind: Service

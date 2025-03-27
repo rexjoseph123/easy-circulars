@@ -41,7 +41,7 @@ spec:
               value: http://proxy-dmz.intel.com:912
             - name: no_proxy
               value: 127.0.0.1,localhost,.intel.com,easy-circulars-redis-deployment,easy-circulars-embedding-service-deployment
-          image: tanmayudupa124/easy-circulars-retriever:latest
+          image: navchetna/retriever:latest
           name: easy-circulars-retriever-container
           ports:
             - containerPort: 7000
