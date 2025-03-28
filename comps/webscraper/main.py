@@ -3,6 +3,7 @@ from urlscraper import URLScraper
 from circular import Circular
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from datetime import datetime
 import os
 import requests
 from pathlib import Path
@@ -37,7 +38,7 @@ class WebScraperService:
             '_id': circular._id,
             'title': circular.title,
             'tags': circular.tags,
-            'date': circular.date,
+            'date': circular.date.isoformat() if isinstance(circular.date, datetime) else circular.date,
             'bookmark': circular.bookmark,
             'path': str(circular.path),
             'conversation_id': circular.conversation_id,

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CHAT_QNA_URL from "@/lib/constants";
-import { usePageTitle } from "../contexts/PageTitleContext";
+import { usePageTitle } from "../../contexts/PageTitleContext";
 
 interface Circular {
   circular_id: string;
@@ -23,7 +23,7 @@ interface Circular {
   references: string[];
 }
 
-export default function SearchPage() {
+export default function KeywordTagSearchPage() {
   const { setPageTitle } = usePageTitle();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -52,7 +52,7 @@ export default function SearchPage() {
   const allTags = Array.from(new Set(circulars.flatMap((c) => c.tags)));
 
   const handleCircularClick = (id: string) => {
-    router.push(`/circulars/${encodeURIComponent(id)}`);
+    router.push(`/circulars/${encodeURIComponent(id)}?from=keyword-tag`);
   };
 
   return (
@@ -98,7 +98,13 @@ export default function SearchPage() {
               <CardTitle className="text-foreground">{circular.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground mb-2">Date: {circular.date}</p>
+              <p className="text-sm text-muted-foreground mb-2">
+                Date: {circular.date ? new Date(circular.date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              }) : "N/A"}
+              </p>
               <div className="flex gap-2">
                 {circular.tags.map((tag) => (
                   <Badge

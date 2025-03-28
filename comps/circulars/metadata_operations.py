@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional
 from fastapi import HTTPException, Request
+from datetime import datetime
+import traceback
 from comps.mongo_client import mongo_client
 
 collection = mongo_client['easy_circulars']['circulars']
@@ -13,6 +15,9 @@ class CircularUpdateData(BaseModel):
 async def handle_circular_post(request: Request):
     try:
         circular_data = await request.json()
+        if 'date' in circular_data:
+            circular_data['date'] = datetime.fromisoformat(circular_data['date'])
+
         inserted_circular_data = collection.insert_one(circular_data)
         circular_id = str(inserted_circular_data.inserted_id)
         return circular_id
@@ -84,6 +89,26 @@ def get_circular_by_id(circular_id) -> dict | None:
         print(f"Error fetching circular: {e}")
         return None
     
+def get_circulars_by_month_and_year(month, year) -> list[dict]:
+    try:
+        circulars: list = []
+        cursor = collection.find({
+            "date": {
+                "$gte": datetime(year, month, 1),
+                "$lt": datetime(year, month + 1, 1)
+            }
+        })
+
+        for document in cursor:
+            document["circular_id"] = str(document["_id"])
+            del document["_id"]
+            circulars.append(document)
+        return circulars
+
+    except Exception as e:
+        print(e)
+        raise Exception(e)
+    
 def get_all_circulars() -> list[dict]:
     try:
         circulars: list = []
@@ -103,14 +128,27 @@ def handle_circular_get(request: Request):
     try:
         circular_id = request.query_params.get("circular_id")
         bookmark = request.query_params.get("bookmark", "false").lower() == "true"
+
+        year_param = request.query_params.get("year")
+        month_param = request.query_params.get("month")
+        year = int(year_param) if year_param is not None else None
+        month = int(month_param) if month_param is not None else None
+        
         if bookmark:
             response = get_bookmarked_circulars()
         elif circular_id:
             response = get_circular_by_id(circular_id)
+        elif year and month:
+            response = get_circulars_by_month_and_year(month, year)
         else:
             response = get_all_circulars()
 
         return response
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        error_details = {
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+        print("Error fetching circulars:", error_details)
+        raise HTTPException(status_code=500, detail=error_details)

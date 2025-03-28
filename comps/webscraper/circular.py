@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from typing import List
 from urlscraper import URLScraper
 from pathlib import Path
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -98,7 +99,8 @@ class Circular:
             date_pattern = re.compile(r'^(January|February|March|April|May|June|July|August|September|October|November|December) \d{1,2}, \d{4}$')
             for tag in date_tags:
                 if date_pattern.match(tag.get_text(strip=True)):
-                    self.date = tag.get_text(strip=True)
+                    date_string = tag.get_text(strip=True)
+                    self.date = datetime.strptime(date_string, "%B %d, %Y")
                     break
 
             pdf_url = soup.find('a', href=re.compile(r'https://rbidocs\.rbi\.org\.in/rdocs/Notification/PDFs/[^"\s]+\.PDF'))
@@ -153,14 +155,3 @@ class Circular:
         except (requests.RequestException, IOError) as e:
             logging.error(f"Error downloading PDF: {e}")
             return False
-
-if __name__ == "__main__":
-    url = "https://rbi.org.in/Scripts/BS_CircularIndexDisplay.aspx?Id=12611"
-    c = Circular(url)
-
-    try:
-        c.fetch_metadata()
-        if c.download_pdf():
-            print(c)
-    except Exception as e:
-        logging.error(f"Process failed: {e}")

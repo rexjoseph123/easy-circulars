@@ -161,12 +161,3 @@ class URLScraper:
         self.soup = self._fetch_soup(month=month, year=year)
 
         return self.recursive_url_parser(page_layer=r'^https:\/\/rbi\.org\.in\/Scripts\/BS_CircularIndexDisplay\.aspx\?Id=\d+$', url_layer=r'https://rbidocs\.rbi\.org\.in/rdocs/Notification/PDFs/[^\"\s]+\.PDF')
-
-
-
-if __name__ == "__main__":
-
-    s = URLScraper("https://rbi.org.in/Scripts/BS_CircularIndexDisplay.aspx")
-    pdfs = s.get_circular_by_date(month=2, year=2024)
-    logging.info(f"Found {len(pdfs)} PDFs: {pdfs}")
-    # download_pdf(pdfs[1])

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import {
   ArrowLeft, Send, ExternalLink, Bookmark,
 } from "lucide-react";
@@ -32,7 +32,7 @@ interface Conversation {
 }
 
 interface Circular {
-  _id: string;
+  circular_id: string;
   title: string;
   tags: string[];
   date: string;
@@ -47,6 +47,8 @@ export default function CircularPage() {
   const params = useParams();
   const router = useRouter();
   const id = decodeURIComponent(params.id as string);
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from") || "keyword-tag";
 
   const [circular, setCircular] = useState<Circular | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
@@ -152,7 +154,7 @@ export default function CircularPage() {
       await axios.patch(
         `${CHAT_QNA_URL}/api/circulars`,
         {
-          circular_id: circular._id,
+          circular_id: circular.circular_id,
           bookmark: updatedCircular.bookmark,
         },
         {
@@ -209,7 +211,7 @@ export default function CircularPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <Link href="/search">
+        <Link href={`/search/${from}`}>
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Search
@@ -238,7 +240,7 @@ export default function CircularPage() {
           <Card>
             <CardContent className="p-6">
               <ScrollArea className="h-[55vh] mb-4">
-                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.js">
+                <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.js">
                   <div>
                     <Viewer fileUrl={circular.path} />
                   </div>
@@ -291,9 +293,9 @@ export default function CircularPage() {
               <ScrollArea className="h-[50vh]">
                 {references.map((ref) => (
                   <div
-                    key={ref._id}
+                    key={ref.circular_id}
                     className="bg-muted text-sm p-2 mb-2 rounded cursor-pointer hover:bg-muted/80"
-                    onClick={() => handleReferenceClick(ref._id)}
+                    onClick={() => handleReferenceClick(ref.circular_id)}
                   >
                     <div className="font-medium hover:underline flex items-center">
                       {ref.title}
