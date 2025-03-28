@@ -22,7 +22,7 @@ export default function HomePage() {
     {
       title: "Search Circulars",
       icon: Search,
-      href: "/search",
+      href: "/search/keyword-tag",
       description:
         "Quickly find and access relevant RBI circulars. Use filters and keywords to narrow your search results.",
     },
