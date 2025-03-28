@@ -49,12 +49,12 @@ spec:
             - containerPort: 8000
               protocol: TCP
           volumeMounts:
-            - mountPath: /home/user/ui
+            - mountPath: /home/user/ui/public/pdfs
               name: pdfs
       restartPolicy: Always
       volumes:
         - hostPath:
-            path: /home/intel/easy-circulars/ui
+            path: /mnt/data/workspace/smg/kubernetes_files/easy-circulars/pdfs
           name: pdfs
 ---
 apiVersion: v1

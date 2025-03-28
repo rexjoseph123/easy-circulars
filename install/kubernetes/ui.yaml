@@ -38,7 +38,7 @@ spec:
       restartPolicy: Always
       volumes:
         - hostPath:
-            path: /home/intel/easy-circulars/ui/public/pdfs
+            path: /mnt/data/workspace/smg/kubernetes_files/easy-circulars/pdfs
           name: pdfs
 ---
 apiVersion: v1
