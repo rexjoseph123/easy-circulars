@@ -8,10 +8,16 @@ export HTTPS_PROXY=http://proxy-dmz.intel.com:912
 export HTTP_PROXY=http://proxy-dmz.intel.com:912
 ```
 
-
 ## Mandatory services
+
+### Find out your IP address
 ```bash
-export no_proxy=127.0.0.1,localhost,.intel.com,172.17.0.1,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
+hostname -I
+```
+
+### Export the following variables
+```bash
+export no_proxy=127.0.0.1,localhost,.intel.com,<your_ip_address>,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
 export EMBEDDING_MODEL_ID="BAAI/bge-base-en-v1.5"
 export RERANK_MODEL_ID="BAAI/bge-reranker-base"
 export LLM_MODEL_ID="meta-llama/Meta-Llama-3.1-8B-Instruct"
@@ -32,19 +38,21 @@ export GROQ_API_KEY=<GROQ_API_KEY>
 export MONGO_HOST=localhost
 export MONGO_PORT=27018
 export MONGO_DB=easy_circulars
-export SERVER_HOST_IP=172.17.0.1
-export SERVER_PORT=9001     
-export DATAPREP_HOST_IP=172.17.0.1
-export DATAPREP_PORT=6007   
 export UI_DIR=<path/to/easy-circulars/ui>
+export SERVER_HOST_IP=<your_ip_address>
+export SERVER_PORT=9001     
+export DATAPREP_HOST_IP=<your_ip_address>
+export DATAPREP_PORT=6007   
 ```
-Build the Webscraper, Groq and Retriever images:
+
+### Build the Webscraper, Groq and Retriever images:
 ```bash
 docker buildx build --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy -t easy-circulars/webscraper:latest -f comps/webscraper/Dockerfile .
 docker buildx build --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy -t easy-circulars/groq:latest -f comps/groq/Dockerfile  .;
 docker buildx build --build-arg https_proxy=$https_proxy --build-arg http_proxy=$http_proxy -t easy-circulars/retriever:latest -f comps/retriever/Dockerfile . 
 ```
-Run the compose file:
+
+### Run the compose file:
 ```bash
 docker compose -f install/docker/docker-compose-dev.yaml up
 ```
