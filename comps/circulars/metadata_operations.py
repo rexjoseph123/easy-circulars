@@ -91,11 +91,21 @@ def get_circular_by_id(circular_id) -> dict | None:
     
 def get_circulars_by_month_and_year(month, year) -> list[dict]:
     try:
+        if not (1 <= month <= 12):
+            raise ValueError("Month must be between 1 and 12.")
+
         circulars: list = []
+
+        start_date = datetime(year, month, 1)
+        if month == 12:
+            end_date = datetime(year + 1, 1, 1)
+        else:
+            end_date = datetime(year, month + 1, 1)
+
         cursor = collection.find({
             "date": {
-                "$gte": datetime(year, month, 1),
-                "$lt": datetime(year, month + 1, 1)
+                "$gte": start_date,
+                "$lt": end_date
             }
         })
 
