@@ -10,14 +10,9 @@ export HTTP_PROXY=http://proxy-dmz.intel.com:912
 
 ## Mandatory services
 
-### Find out your IP address
-```bash
-hostname -I
-```
-
 ### Export the following variables
 ```bash
-export no_proxy=127.0.0.1,localhost,.intel.com,<your_ip_address>,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
+export no_proxy=127.0.0.1,localhost,.intel.com,host.docker.internal,10.235.124.11,10.235.124.12,10.235.124.13,10.96.0.0/12,10.235.64.0/18,chatqna-xeon-ui-server,chatqna-xeon-backend-server,dataprep-redis-service,tei-embedding-service,retriever,tei-reranking-service,tgi-service,vllm_service,backend,mongodb,tei-reranking-server,tei-embedding-server,groq-service
 export EMBEDDING_MODEL_ID="BAAI/bge-base-en-v1.5"
 export RERANK_MODEL_ID="BAAI/bge-reranker-base"
 export LLM_MODEL_ID="meta-llama/Meta-Llama-3.1-8B-Instruct"
@@ -39,9 +34,9 @@ export MONGO_HOST=localhost
 export MONGO_PORT=27018
 export MONGO_DB=easy_circulars
 export UI_DIR=<path/to/easy-circulars/ui>
-export SERVER_HOST_IP=<your_ip_address>
+export SERVER_HOST_IP=host.docker.internal
 export SERVER_PORT=9001     
-export DATAPREP_HOST_IP=<your_ip_address>
+export DATAPREP_HOST_IP=host.docker.internal
 export DATAPREP_PORT=6007   
 ```
 
