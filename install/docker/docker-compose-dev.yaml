@@ -35,6 +35,8 @@ services:
 
   easy-circulars-webscraper:
     image: easy-circulars/webscraper:latest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     container_name: easy-circulars-webscraper
     ports:
       - "5102:8002"
