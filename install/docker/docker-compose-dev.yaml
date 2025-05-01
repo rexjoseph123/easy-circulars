@@ -1,7 +1,6 @@
 # Copyright (C) 2024 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 # 5d081333-2c77-414d-b218-632d488b353d
-version: "3.8"
 
 services:
   easy-circulars-redis:
@@ -9,14 +8,28 @@ services:
     container_name: easy-circulars-redis
     ports:
       - "6381:6379"
-      - "8002:8001"  
-      
+      - "8002:8001"
+
   easy-circulars-mongodb:
     image: mongo
     container_name: easy-circulars-mongodb
     restart: always
     ports:
       - "27018:27017"
+    
+
+  easy-circulars-neo4j:
+    image: neo4j:latest 
+    container_name: easy-circulars-neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474" 
+      - "7687:7687" 
+    volumes:
+      - neo4j_data:/data 
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-password}
+     
 
   easy-circulars-groq:
     image: easy-circulars/groq:latest
@@ -24,7 +37,7 @@ services:
     ports:
       - "5101:8000"
     volumes:
-      - "./cache:/root/.cache"
+      - "./cache:/root/.cache" 
     environment:
       no_proxy: ${no_proxy}
       http_proxy: ${http_proxy}
@@ -47,19 +60,19 @@ services:
       http_proxy: ${http_proxy}
       https_proxy: ${https_proxy}
       SERVER_HOST_IP: ${SERVER_HOST_IP}
-      SERVER_PORT: ${SERVER_PORT}     
+      SERVER_PORT: ${SERVER_PORT}
       DATAPREP_HOST_IP: ${DATAPREP_HOST_IP}
-      DATAPREP_PORT: ${DATAPREP_PORT}    
+      DATAPREP_PORT: ${DATAPREP_PORT}
       HTTP_PROXY: ${HTTP_PROXY}
       HTTPS_PROXY: ${HTTPS_PROXY}
-
+      
   easy-circulars-tei-reranking:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
     container_name: easy-circulars-tei-reranking
     ports:
       - "8810:80"
     volumes:
-      - "./data:/data"
+      - "./data:/data" 
     shm_size: 1g
     environment:
       no_proxy: ${no_proxy}
@@ -78,7 +91,7 @@ services:
     ports:
       - "6010:80"
     volumes:
-      - "./data:/data"
+      - "./data:/data" 
     shm_size: 1g
     environment:
       no_proxy: ${no_proxy}
@@ -96,6 +109,7 @@ services:
     ipc: host
     depends_on:
       - easy-circulars-redis
+      
     environment:
       no_proxy: ${no_proxy}
       http_proxy: ${http_proxy}
@@ -106,8 +120,12 @@ services:
       HTTPS_PROXY: ${HTTPS_PROXY}
       TEI_EMBEDDING_ENDPOINT: http://easy-circulars-embedding-service:80
       HUGGINGFACEHUB_API_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
+      
     restart: unless-stopped
 
+
+volumes:
+  neo4j_data: {} 
 networks:
   default:
     driver: bridge
