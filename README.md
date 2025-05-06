@@ -37,7 +37,10 @@ export UI_DIR=<path/to/easy-circulars/ui>
 export SERVER_HOST_IP=host.docker.internal
 export SERVER_PORT=9001     
 export DATAPREP_HOST_IP=host.docker.internal
-export DATAPREP_PORT=6007   
+export DATAPREP_PORT=6007
+export NEO4J_URI="bolt://easy-circulars-neo4j:7687"
+export NEO4J_USER="neo4j"
+export NEO4J_PASSWORD="password"
 ```
 
 ### Build the Webscraper, Groq and Retriever images:
