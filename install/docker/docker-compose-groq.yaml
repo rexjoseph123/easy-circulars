@@ -71,6 +71,7 @@ services:
 
   easy-circulars-webscraper:
     image: easy-circulars/webscraper:latest
+    
     container_name: easy-circulars-webscraper
     depends_on:
       - easy-circulars-backend

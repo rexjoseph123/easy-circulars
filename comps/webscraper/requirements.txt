@@ -7,3 +7,4 @@ prometheus_fastapi_instrumentator
 uvicorn
 pillow
 aiohttp
+neo4j
