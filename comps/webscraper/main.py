@@ -11,6 +11,8 @@ from comps import MicroService, ServiceRoleType
 from neo4j import GraphDatabase
 import signal
 import atexit
+import time
+from neo4j.exceptions import ServiceUnavailable
 
 logger = CustomLogger("web_scraper")
 server_host_ip = os.getenv("SERVER_HOST_IP", "localhost")
@@ -32,14 +34,22 @@ class WebScraperService:
         self._connect_neo4j()
         atexit.register(self.close_neo4j_driver)
 
-    def _connect_neo4j(self):
-        try:
-            self._neo4j_driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-            self._neo4j_driver.verify_connectivity()
-            logger.info(f"Successfully connected to Neo4j at {NEO4J_URI}")
-        except Exception as e:
-            logger.error(f"Failed to connect to Neo4j: {e}")
-            self._neo4j_driver = None
+    def _connect_neo4j(self, max_retries=10, delay=3):
+        for attempt in range(1, max_retries + 1):
+            try:
+                self._neo4j_driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+                self._neo4j_driver.verify_connectivity()
+                logger.info(f"Successfully connected to Neo4j at {NEO4J_URI}")
+                return
+            except ServiceUnavailable as e:
+                logger.warning(f"Attempt {attempt}/{max_retries}: Neo4j not ready ({e}). Retrying in {delay}s...")
+            except Exception as e:
+                logger.error(f"Unexpected error while connecting to Neo4j: {e}")
+                break
+            time.sleep(delay)
+
+        logger.error("Failed to connect to Neo4j after multiple attempts.")
+        self._neo4j_driver = None
 
     def close_neo4j_driver(self):
         if self._neo4j_driver is not None:
