@@ -101,16 +101,17 @@ class Circular:
             if circular_info_tag:
                 circular_text = circular_info_tag.get_text(separator='\n', strip=True)
                 circular_number_match = re.search(
-                    r'(RBI/\d{4}-\d{4}/\d+|RBI/\d{4}-\d{2}/\d+)|'
-                    r'([A-Z]+\.No\.[A-Z]+(?:\.[A-Z]+)?\.\d+/\d{2}\.\d{2}\.\d+/\d{4}-\d{2})',
+                    r'(RBI/\d{2,4}-\d{2,4}/\d+|[A-Z]+\.No\.[A-Z]+(?:\.[A-Z]+)?\.\d+/\d{2}\.\d{2}\.\d+/\d{4}-\d{2})',
                     circular_text,
                     re.IGNORECASE | re.S
                 )
                 if circular_number_match:
-                    full_id = circular_number_match.group(2) or circular_number_match.group(1)
+                    full_id = circular_text.replace('\n', '-')
                     if full_id:
-                        self._id = re.sub(r'\s+', ' ', full_id).strip()
+                        self._id = full_id
+                        logging.info(self._id)
                         self.core_id = self._parse_core_id(self._id)
+                        logging.info(self.core_id)
                     else:
                         logging.warning(f"Circular ID regex matched but no group captured text: {circular_text}")
                 else:
