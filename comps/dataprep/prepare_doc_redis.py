@@ -185,6 +185,9 @@ def ingest_chunks_to_redis(file_name: str, chunks: List):
 def get_table_description(item: Table):
     server_host_ip = os.getenv("LLM_SERVER_HOST_IP")
     server_port = os.getenv("LLM_SERVER_PORT")
+    model_name = os.getenv("LLM_MODEL_ID")
+    use_model_param = os.getenv("LLM_USE_MODEL_PARAM", "false").lower() == "true"
+
     url = f"http://{server_host_ip}:{server_port}/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
@@ -214,6 +217,9 @@ def get_table_description(item: Table):
         ],
         "stream": False
     }
+
+    if use_model_param and model_name:
+        data["model"] = model_name
 
     response = requests.post(url, headers=headers, json=data)
     response_data = json.loads(response.text)
