@@ -1,0 +1,218 @@
+version: "3.8"
+
+services:
+  easy-circulars-retriever:
+    image: easy-circulars/retriever:latest
+    container_name: easy-circulars-retriever
+    ports:
+      - "5011:7000"
+    ipc: host
+    depends_on:
+      - easy-circulars-redis
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+      REDIS_URL: ${REDIS_URL}
+      INDEX_NAME: ${INDEX_NAME}
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      TEI_EMBEDDING_ENDPOINT: http://easy-circulars-embedding-service:80
+      HUGGINGFACEHUB_API_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
+    restart: unless-stopped
+
+  easy-circulars-redis:
+    image: redis/redis-stack:7.2.0-v9
+    container_name: easy-circulars-redis
+    ports:
+      - "6381:6379"
+      - "8002:8001"
+
+  easy-circulars-dataprep:
+    image: easy-circulars/dataprep:latest
+    container_name: easy-circulars-dataprep
+    depends_on:
+      - easy-circulars-redis
+      - easy-circulars-embedding-service
+    volumes:
+      - "./cache:/.cache"
+      - ${DATAPREP_OUT_DIR}:/home/user/comps/dataprep/out
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+      REDIS_URL: ${REDIS_URL}
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      LOGFLAG: ${LOGFLAG}
+      TEI_EMBEDDING_ENDPOINT: http://easy-circulars-embedding-service:80
+      HUGGINGFACEHUB_API_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
+      LLM_SERVER_HOST_IP: ${LLM_SERVER_HOST_IP}
+      LLM_SERVER_PORT: ${LLM_SERVER_PORT:-80}
+    ports:
+      - "5012:6007"
+    ipc: host
+    restart: unless-stopped
+
+  vllm-service:
+    image: opea/vllm-gaudi:latest
+    container_name: vllm-service
+    ports:
+      - "8080:8000"
+    volumes:
+      - ${HF_CACHE}:/root/.cache/huggingface/hub
+    privileged: true
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+      # VLLM_USE_V1: 0
+      # VLLM_ALLOW_LONG_MAX_MODEL_LEN: 1
+      # VLLM_ENGINE_ITERATION_TIMEOUT_S: 600
+      # VLLM_CPU_KVCACHE_SPACE: 50
+      # VLLM_CPU_OMP_THREADS_BIND: "0-31"
+      VLLM_SKIP_WARMUP: true
+      HABANA_VISIBLE_DEVICES: "5"
+      HF_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
+      VLLM_TORCH_PROFILER_DIR: "/mnt"
+    # cpuset: "0-31"
+    command: --model ${LLM_MODEL_ID} --host 0.0.0.0 --dtype bfloat16
+    healthcheck:
+      interval: 10s
+      retries: 50
+      start_period: 30s
+      test:
+      - CMD
+      - curl
+      - -f
+      - http://localhost:8000/v1/models
+    runtime: habana
+    cap_add:
+      - SYS_NICE
+
+  easy-circulars-webscraper:
+    image: easy-circulars/webscraper:latest
+    
+    container_name: easy-circulars-webscraper
+    depends_on:
+      - easy-circulars-backend
+      - easy-circulars-dataprep
+    ports:
+      - "5102:8002"
+    volumes:
+      - ${UI_DIR}:/home/user/ui
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+      SERVER_HOST_IP: ${SERVER_HOST_IP}
+      SERVER_PORT: ${SERVER_PORT}     
+      DATAPREP_HOST_IP: ${DATAPREP_HOST_IP}
+      DATAPREP_PORT: ${DATAPREP_PORT}    
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      NEO4J_URI: ${NEO4J_URI}
+      NEO4J_USER: ${NEO4J_USER}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
+
+  easy-circulars-tei-reranking:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
+    container_name: easy-circulars-tei-reranking
+    ports:
+      - "8810:80"
+    volumes:
+      - "./data:/data"
+    shm_size: 1g
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      HUGGINGFACEHUB_API_TOKEN: ${HUGGINGFACEHUB_API_TOKEN}
+      HF_HUB_DISABLE_PROGRESS_BARS: 1
+      HF_HUB_ENABLE_HF_TRANSFER: 0
+    command: --model-id ${RERANK_MODEL_ID} --auto-truncate
+
+  easy-circulars-embedding-service:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
+    container_name: easy-circulars-embedding-service
+    ports:
+      - "6010:80"
+    volumes:
+      - "./data:/data"
+    shm_size: 1g
+    environment:
+      no_proxy: ${no_proxy}
+      http_proxy: ${http_proxy}
+      https_proxy: ${https_proxy}
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+    command: --model-id ${EMBEDDING_MODEL_ID} --auto-truncate
+
+  easy-circulars-mongodb:
+    image: mongo
+    container_name: easy-circulars-mongodb
+    restart: always
+    ports:
+      - "27018:27017"
+
+  easy-circulars-neo4j:
+    image: neo4j:latest 
+    container_name: easy-circulars-neo4j
+    restart: unless-stopped
+    ports:
+      - "7474:7474" 
+      - "7687:7687" 
+    volumes:
+      - neo4j_data:/data 
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-password}
+
+  easy-circulars-backend:
+    image: easy-circulars/backend:latest
+    depends_on:
+      - easy-circulars-redis
+      - easy-circulars-embedding-service
+      - easy-circulars-retriever
+      - easy-circulars-tei-reranking
+    environment:
+      - no_proxy=${no_proxy}
+      - https_proxy=${https_proxy}
+      - http_proxy=${http_proxy}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+      - MEGA_SERVICE_HOST_IP=127.0.0.1
+      - MEGA_SERVICE_PORT=${MEGA_SERVICE_PORT}
+      - EMBEDDING_SERVER_HOST_IP=${EMBEDDING_SERVER_HOST_IP}
+      - EMBEDDING_SERVER_PORT=${EMBEDDING_SERVER_PORT:-80}
+      - RETRIEVER_SERVICE_HOST_IP=${RETRIEVER_SERVICE_HOST_IP}
+      - RETRIEVER_SERVICE_PORT=${RETRIEVER_SERVICE_PORT}
+      - RERANK_SERVER_HOST_IP=${RERANK_SERVER_HOST_IP}
+      - RERANK_SERVER_PORT=${RERANK_SERVER_PORT:-80}
+      - LLM_SERVER_HOST_IP=${LLM_SERVER_HOST_IP}
+      - LLM_SERVER_PORT=${LLM_SERVER_PORT:-80}
+      - LLM_MODEL=${LLM_MODEL_ID}
+      - LOGFLAG=${LOGFLAG}
+      - MONGO_HOST=${MONGO_HOST}
+    ipc: host
+    ports:
+      - "5013:5008"
+    restart: always
+
+  easy-circulars-ui:
+    image: easy-circulars/ui:latest
+    depends_on:
+      - easy-circulars-backend
+    volumes:
+      - ${UI_DIR}:/home/user/ui
+    ports:
+      - "5014:3000"
+    restart: always
+
+volumes:
+  neo4j_data: {} 
+
+networks:
+  default:
+    driver: bridge

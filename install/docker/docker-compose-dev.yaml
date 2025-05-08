@@ -54,7 +54,7 @@ services:
     ports:
       - "5102:8002"
     volumes:
-      - ${UI_DIR}:/home/user/ui
+      - ${PDF_DIR}:/home/user/ui/public/pdfs
     environment:
       no_proxy: ${no_proxy}
       http_proxy: ${http_proxy}
@@ -65,6 +65,9 @@ services:
       DATAPREP_PORT: ${DATAPREP_PORT}
       HTTP_PROXY: ${HTTP_PROXY}
       HTTPS_PROXY: ${HTTPS_PROXY}
+      NEO4J_URI: ${NEO4J_URI}
+      NEO4J_USER: ${NEO4J_USER}
+      NEO4J_PASSWORD: ${NEO4J_PASSWORD}
       
   easy-circulars-tei-reranking:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.5
@@ -123,9 +126,9 @@ services:
       
     restart: unless-stopped
 
-
 volumes:
-  neo4j_data: {} 
+  neo4j_data: {}
+
 networks:
   default:
     driver: bridge
