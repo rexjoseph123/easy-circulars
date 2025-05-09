@@ -110,6 +110,7 @@ class RetrievalRequest(BaseModel):
     embedding: Union[EmbeddingResponse, List[float]] = None
     input: Optional[str] = None  # search_type maybe need, like "mmr"
     search_type: str = "similarity"
+    file_name: str
     k: int = 4
     distance_threshold: Optional[float] = None
     fetch_k: int = 20
@@ -254,6 +255,7 @@ class ChatCompletionRequest(BaseModel):
 
     # retrieval
     search_type: str = "similarity"
+    file_name: str
     k: int = 4
     distance_threshold: Optional[float] = None
     fetch_k: int = 20

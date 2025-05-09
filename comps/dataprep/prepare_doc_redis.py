@@ -155,12 +155,14 @@ def ingest_chunks_to_redis(file_name: str, chunks: List):
             logger.info(f"[ ingest chunks ] Current batch: {i}")
         batch_chunks = chunks[i : i + batch_size]
         batch_texts = batch_chunks
+        metadatas = [{"file_name": file_name} for _ in batch_chunks]
 
         _, keys = Redis.from_texts_return_keys(
             texts=batch_texts,
             embedding=embedder,
             index_name=INDEX_NAME,
             redis_url=REDIS_URL,
+            metadatas=metadatas,
         )
         if logflag:
             logger.info(f"[ ingest chunks ] keys: {keys}")

@@ -30,6 +30,7 @@ class EmbedDoc(BaseDoc):
     text: Union[str, List[str]]
     embedding: Union[conlist(float, min_length=0), List[conlist(float, min_length=0)]]
     search_type: str = "similarity"
+    file_name: str
     k: int = 4
     distance_threshold: Optional[float] = None
     fetch_k: int = 20
@@ -92,6 +93,7 @@ class RerankerParms(BaseDoc):
 
 class RetrieverParms(BaseDoc):
     search_type: str = "similarity"
+    file_name: str
     k: int = 4
     distance_threshold: Optional[float] = None
     fetch_k: int = 20

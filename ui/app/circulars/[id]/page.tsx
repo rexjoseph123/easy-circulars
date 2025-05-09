@@ -175,7 +175,7 @@ export default function CircularPage() {
       try {
         const response = await axios.post(
           `${CHAT_QNA_URL}/api/conversations/${conversation.conversation_id}`,
-          { db_name: "easy_circulars", question: input },
+          { db_name: "easy_circulars", question: input, circular_id: id },
           { headers: { "Content-Type": "application/json" } },
         );
 

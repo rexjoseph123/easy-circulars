@@ -255,6 +255,7 @@ class SourceInfo(BaseModel):
 class ConversationRequest(BaseModel):
     question: str
     db_name: str
+    circular_id: str
     conversation_id: Optional[str] = None
     max_tokens: Optional[int] = 1024
     temperature: Optional[float] = 0.1
@@ -450,6 +451,7 @@ class ChatQnAService:
         )
         retriever_parameters = RetrieverParms(
             search_type=chat_request.search_type if chat_request.search_type else "similarity",
+            file_name=chat_request.file_name,
             k=chat_request.k if chat_request.k else 4,
             distance_threshold=chat_request.distance_threshold if chat_request.distance_threshold else None,
             fetch_k=chat_request.fetch_k if chat_request.fetch_k else 20,
@@ -612,8 +614,13 @@ class ConversationRAGService(ChatQnAService):
             stream = data.get("stream", False)
 
             db = self.mongo_client[conversation_request.db_name]
+            circulars_collection = db["circulars"]
             conversations_collection = db["conversations"]
 
+            circular_id = conversation_request.circular_id
+            circular = circulars_collection.find_one({"_id": circular_id})
+            if circular and 'path' in circular:
+                file_name = circular['path'].split('/')[-1]      
             
             if not conversation_request.conversation_id and "conversation_id" in request.path_params:
                 conversation_request.conversation_id = request.path_params["conversation_id"]
@@ -632,6 +639,7 @@ class ConversationRAGService(ChatQnAService):
                 "max_tokens": conversation_request.max_tokens,
                 "temperature": conversation_request.temperature,
                 "stream": stream,
+                "file_name": file_name,
                 "k": conversation_request.top_k or 3,
                 "top_n": conversation_request.top_k or 3
             }

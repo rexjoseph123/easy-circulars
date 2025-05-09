@@ -72,7 +72,8 @@ async def retrieve(
 
         # if the Redis index has data, perform the search
         if input.search_type == "similarity":
-            search_res = await vector_db.asimilarity_search_by_vector(embedding=embedding_data_input, k=input.k)
+            redis_filter = f"@file_name:{input.file_name}" if input.file_name else "*"
+            search_res = await vector_db.asimilarity_search_by_vector(embedding=embedding_data_input, k=input.k, filter=redis_filter)
         elif input.search_type == "similarity_distance_threshold":
             if input.distance_threshold is None:
                 raise ValueError("distance_threshold must be provided for " + "similarity_distance_threshold retriever")
