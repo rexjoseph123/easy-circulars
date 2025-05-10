@@ -194,12 +194,56 @@ def create_update_circular_node(driver: GraphDatabase.driver, circular_data: Dic
     try:
         with driver.session() as session:
             session.run(query, params)
-            # logger.info(f"Created/Updated node for {unique_id_value}") # Optional logging
+            
     except Exception as e:
         logger.error(f"Failed to execute Neo4j node merge for {unique_id_value}: {e}")
         logger.error(f"Query Params: {params}")
 
-# --- Main Execution ---
+
+def link_circular_versions(driver: GraphDatabase.driver):
+    """
+    Creates NEXT_VERSION relationships between circulars based on
+    matching core_id, title, and sequential date.
+    """
+    logger.info("Attempting to link circular versions (NEXT_VERSION)...")
+
+    
+    delete_query = "MATCH (:Circular)-[r:NEXT_VERSION]->(:Circular) DELETE r"
+    try:
+        with driver.session() as session:
+            result = session.run(delete_query)
+            logger.info(f"Deleted {result.consume().counters.relationships_deleted} existing NEXT_VERSION relationships.")
+    except Exception as e:
+        logger.error(f"Error deleting existing NEXT_VERSION relationships: {e}")
+        
+
+    
+    link_query = """
+    MATCH (c1:Circular)
+    WHERE c1.core_id IS NOT NULL AND c1.title IS NOT NULL AND c1.date IS NOT NULL
+    CALL {
+        WITH c1
+        MATCH (c2:Circular)
+        WHERE c2.core_id = c1.core_id
+          AND c2.title = c1.title
+          AND c2.date > c1.date
+        RETURN c2 ORDER BY c2.date ASC LIMIT 1
+    }
+    MERGE (c1)-[r:NEXT_VERSION]->(c2)
+    SET r.year = c2.date.year
+    RETURN count(r) as links_created
+    """
+    try:
+        with driver.session() as session:
+            result = session.run(link_query)
+            summary = result.consume()
+            links_created_count = summary.counters.relationships_created
+            
+            logger.info(f"Successfully created {links_created_count} NEXT_VERSION relationships.")
+    except Exception as e:
+        logger.error(f"Failed to create NEXT_VERSION relationships: {e}")
+
+
 if __name__ == "__main__":
     logger.info("--- Starting Node Creation/Update Process ---")
     driver = connect_neo4j()
@@ -208,9 +252,9 @@ if __name__ == "__main__":
         logger.error("Cannot proceed without Neo4j connection. Exiting.")
         exit(1)
 
-    # 1. Fetch metadata
+   
     metadata_map = fetch_metadata_map()
-    # 2. Get local paths
+    
     local_pdf_paths = get_local_pdf_paths(PDF_DIR)
 
     if not local_pdf_paths or not metadata_map:
@@ -221,10 +265,10 @@ if __name__ == "__main__":
         for pdf_path in local_pdf_paths:
             circular_data = metadata_map.get(pdf_path)
             if circular_data:
-                # Call the function that ONLY creates/updates the node
+                
                 create_update_circular_node(driver, circular_data)
                 processed_count += 1
-                if processed_count % 100 == 0:
+                if processed_count > 0 and processed_count % 100 == 0: 
                     logger.info(f"Processed {processed_count}/{len(local_pdf_paths)} local files with metadata...")
             else:
                 logger.warning(f"No metadata found in API data for local file: {pdf_path}")
@@ -232,8 +276,19 @@ if __name__ == "__main__":
 
         logger.info(f"Finished node processing. Nodes processed: {processed_count}. Missing metadata: {missing_metadata_count}.")
 
-    # --- IMPORTANT: Relationship linking is now done separately ---
-    logger.info("Node processing finished. Run the linking query separately in Neo4j Browser or via another script.")
+    #
+    if driver: 
+        
+        try:
+            with driver.session() as session:
+                session.run("CREATE INDEX circular_core_id IF NOT EXISTS FOR (n:Circular) ON (n.core_id)")
+                session.run("CREATE INDEX circular_title IF NOT EXISTS FOR (n:Circular) ON (n.title)")
+                session.run("CREATE INDEX circular_date IF NOT EXISTS FOR (n:Circular) ON (n.date)")
+                logger.info("Ensured necessary indexes for linking exist.")
+        except Exception as e:
+            logger.error(f"Error creating indexes: {e}")
+        
+        link_circular_versions(driver) 
 
     close_neo4j_driver()
-    logger.info("--- Node Creation/Update Process Finished ---")
+    logger.info("--- Node Creation/Update and Linking Process Finished ---")
